@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "tamagui-best-practices": {
+      "source": "0xbigboss/claude-code",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/tamagui-best-practices/SKILL.md",
+      "computedHash": "b2f815652ca756166a6d9d8d8d324e756f8bd1e8cd32f92955872ad781ef9c92"
+    },
+    "vercel-react-native-skills": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-native-skills/SKILL.md",
+      "computedHash": "41d24eafa7c3d82e270439808f7cfbc4d51aeb2d14f2809a2267c16275784d06"
+    }
+  }
+}

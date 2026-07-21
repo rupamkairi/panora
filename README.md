@@ -1,11 +1,13 @@
-# Takeout Free
+# Panora
 
 > **[Takeout Pro](https://tamagui.dev/takeout)** - The full version with more features, templates, and support.
 
 > **⚠️ v2-beta** - This stack is in active development. APIs may change.
 
-A full-stack, cross-platform starter kit for building modern web and mobile
-applications with React Native.
+Panora is a full-stack, cross-platform application built from Takeout Free. Its
+public landing page is an ephemeral AI chat powered by a server-only OpenRouter
+proxy; the original auth, Zero, database, Docker, and migration foundations are
+retained for future features.
 
 ## Prerequisites
 
@@ -42,14 +44,13 @@ At a high level, the primary technologies used are:
 ## Project Structure
 
 ```
-takeout-free/
+panora/
 ├── app/                   # File-based routing (One router)
-│   ├── (app)/             # Authenticated routes
-│   │   ├── auth/          # Login flows
-│   │   └── home/          # Main app tabs
+│   ├── auth/              # Login and signup flows
+│   ├── index.tsx          # Public Panora chat landing page
 │   └── api/               # API routes
 ├── src/
-│   ├── features/          # Feature modules (auth, todo, theme)
+│   ├── features/          # Feature modules (chat, auth, storage, theme)
 │   ├── interface/         # Reusable UI components
 │   ├── database/          # Database schema and migrations
 │   ├── data/              # Zero schema, models, and queries
@@ -141,6 +142,20 @@ CLOUDFLARE_R2_SECRET_KEY=<secret>
 ```
 
 See `.env.production.example` for complete production configuration.
+
+### Panora Chat
+
+```bash
+OPENROUTER_API_KEY=your-openrouter-key
+OPENROUTER_MODEL=openai/gpt-4o-mini
+```
+
+`OPENROUTER_API_KEY` is server-only. The model is optional and defaults to
+`openai/gpt-4o-mini`. Public chat requests are limited to 20 messages and 16,000
+aggregate characters, 10 requests per client per minute, and two concurrent
+requests. Configure an OpenRouter account spending cap as well: process-local
+rate limiting cannot fully prevent distributed abuse, and multi-instance
+deployments should enforce the same policy at the edge or in a shared store.
 
 ## Mobile Apps
 

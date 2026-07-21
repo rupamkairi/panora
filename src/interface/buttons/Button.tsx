@@ -2,41 +2,44 @@ import { Button as TamaguiButton, styled, type GetProps } from 'tamagui'
 
 export const Button = styled(TamaguiButton, {
   render: 'button',
-  borderWidth: 0,
+  bg: '#0051D5',
+  borderColor: '#0051D5',
+  rounded: '$2',
+  borderWidth: 1,
   cursor: 'pointer',
 
   focusVisibleStyle: {
     outlineWidth: 2,
     outlineStyle: 'solid',
-    outlineColor: '$color8',
+    outlineColor: '#0051D5',
   },
 
   variants: {
     variant: {
       default: {
-        bg: '$color3',
-        hoverStyle: { bg: '$color4' },
-        pressStyle: { bg: '$color2', opacity: 0.8 },
+        bg: '#0051D5',
+        borderColor: '#0051D5',
+        hoverStyle: { bg: '#003EA8' },
+        pressStyle: { bg: '#003EA8', opacity: 0.88 },
       },
       outlined: {
-        bg: 'transparent',
-        borderWidth: 2,
-        borderColor: '$color6',
-        hoverStyle: { borderColor: '$color8' },
-        pressStyle: { borderColor: '$color4', opacity: 0.8 },
+        bg: '#F2F4F6',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        hoverStyle: { bg: '#ECEEF0', borderColor: '#C6C6CD' },
+        pressStyle: { bg: '#E6E8EA', opacity: 0.88 },
       },
       transparent: {
         bg: 'transparent',
-        hoverStyle: { bg: '$color2' },
-        pressStyle: { bg: '$color1', opacity: 0.8 },
+        borderColor: 'transparent',
+        hoverStyle: { bg: '#F2F4F6' },
+        pressStyle: { bg: '#ECEEF0', opacity: 0.88 },
       },
       floating: {
-        bg: '$color4',
-        shadowColor: '$shadow2',
-        shadowRadius: 5,
-        shadowOffset: { height: 2, width: 0 },
-        hoverStyle: { bg: '$color5' },
-        pressStyle: { bg: '$color3', opacity: 0.9 },
+        bg: '#0051D5',
+        borderColor: '#0051D5',
+        hoverStyle: { bg: '#003EA8' },
+        pressStyle: { bg: '#003EA8', opacity: 0.9 },
       },
     },
   } as const,

@@ -65,7 +65,7 @@ test('login page does not redirect infinitely', async ({ page }) => {
 
   // filter to only login-related navigations
   const loginNavigations = navigations.filter(
-    (url) => url.includes('/auth/login') || url.includes('/home'),
+    (url) => url.includes('/auth/login') || new URL(url).pathname === '/',
   )
 
   // allow up to 20 navigations (SPA may have initial load, SSR hydration, auth checks, etc)
@@ -74,4 +74,17 @@ test('login page does not redirect infinitely', async ({ page }) => {
 
   // should still be on /auth/login (not redirected away for logged-out user)
   expect(page.url()).toContain('/auth/login')
+})
+
+test('successful password login returns to the Panora landing page', async ({ page }) => {
+  await page.goto('/auth/login')
+  await page.getByText('Continue with Email').click()
+  await page.getByTestId('email-input').fill('demo@takeout.tamagui.dev')
+  await page.getByTestId('next-button').click()
+
+  await page.getByTestId('password-input').fill('demopassword123')
+  await page.getByTestId('submit-password-button').click()
+
+  await expect(page).toHaveURL('http://localhost:8081/')
+  await expect(page.getByText('What can I do for you today?')).toBeVisible()
 })

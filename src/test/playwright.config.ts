@@ -9,17 +9,30 @@ export default defineConfig({
   },
   fullyParallel: false,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // One's production server keeps route rendering state in-process; exercising
+  // different routes concurrently can cross-contaminate SSR responses.
+  workers: 1,
   reporter: 'list',
   use: {
     baseURL: 'http://localhost:8081',
     trace: 'on-first-retry',
   },
+  webServer: {
+    command: 'bun run dev',
+    cwd: '../..',
+    url: 'http://localhost:8081',
+    reuseExistingServer: true,
+    timeout: 60_000,
+  },
 
   projects: [
     {
-      name: 'chromium',
+      name: 'desktop-chromium',
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'mobile-chromium',
+      use: { ...devices['Pixel 7'] },
     },
   ],
 })

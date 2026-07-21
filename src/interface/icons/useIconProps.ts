@@ -13,8 +13,8 @@ export const useIconProps = ({
   const theme = useTheme()
   const sizeValue = getIconSize(size)
 
-  // use .get() for css var() instead of hardcoded value for ssr
-  const colorValue = theme[color]?.get() || theme.color11.get()
+  // SVG attributes require a concrete value during static web rendering.
+  const colorValue = theme[color]?.val || theme.color11.val
 
   return {
     width: sizeValue,

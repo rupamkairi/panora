@@ -8,6 +8,8 @@ if (typeof window !== 'undefined') {
 export const BETTER_AUTH_SECRET = ensureEnv('BETTER_AUTH_SECRET')
 export const BETTER_AUTH_URL = ensureEnv('BETTER_AUTH_URL')
 export const ONE_SERVER_URL = ensureEnv('ONE_SERVER_URL')
+export const OPENROUTER_API_KEY = ensureEnv('OPENROUTER_API_KEY', "")
+export const OPENROUTER_MODEL = ensureEnv('OPENROUTER_MODEL', "openai/gpt-4o-mini")
 export const VITE_ZERO_HOSTNAME = ensureEnv('VITE_ZERO_HOSTNAME', "")
 export const VITE_WEB_HOSTNAME = ensureEnv('VITE_WEB_HOSTNAME', "")
 export const ZERO_VERSION = ensureEnv('ZERO_VERSION')

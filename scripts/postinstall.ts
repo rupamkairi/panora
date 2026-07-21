@@ -22,7 +22,10 @@ try {
   // ignore if package not found
 }
 
-await Promise.all([$`bun tko run env-update`.nothrow(), $`bun run one patch`.nothrow()])
+// Both commands invoke build tooling. Run them serially so `bun install` does not
+// compete for memory and get either process killed on constrained machines.
+await $`bun tko run env-update`.nothrow()
+await $`bun run one patch`.nothrow()
 
 // fix @take-out/helpers asyncContext.native.js - published version has dynamic import bug
 const asyncContextNativeFix = `// react native implementation - no node:async_hooks available

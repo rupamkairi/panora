@@ -50,3 +50,8 @@ dist
 # Docker volume data
 .docker
 .vxrn-entry-native.tsx
+
+# Agentic Development
+.agents
+.claude
+.codex

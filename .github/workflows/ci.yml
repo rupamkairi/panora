@@ -45,6 +45,8 @@ jobs:
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
           BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
           ONE_SERVER_URL: ${{ secrets.ONE_SERVER_URL }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
           VITE_ZERO_HOSTNAME: ${{ secrets.VITE_ZERO_HOSTNAME }}
           VITE_WEB_HOSTNAME: ${{ secrets.VITE_WEB_HOSTNAME }}
           ZERO_VERSION: ${{ secrets.ZERO_VERSION || '0.26.2' }}

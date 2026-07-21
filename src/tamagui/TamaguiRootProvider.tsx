@@ -5,11 +5,14 @@ import { type ReactNode } from 'react'
 import { isWeb, TamaguiProvider, useTheme } from 'tamagui'
 
 import { config } from './tamagui.config'
+import { FontProvider } from './FontProvider'
 
 export const TamaguiRootProvider = ({ children }: { children: ReactNode }) => {
   return (
     <SchemeProvider>
-      <TamaguiInnerProvider>{children}</TamaguiInnerProvider>
+      <FontProvider>
+        <TamaguiInnerProvider>{children}</TamaguiInnerProvider>
+      </FontProvider>
     </SchemeProvider>
   )
 }
