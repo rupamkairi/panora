@@ -1,1 +1,1 @@
-export { showError, dialogConfirm } from './Dialog'
+export { dialogConfirm, showError } from '../providers/DialogProvider'

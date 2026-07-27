@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-27T12:15:00.000Z",
+  "title": "Design System: Panora",
+  "extensions": {
+    "colorMeta": {
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Cool Canvas",
+        "canonical": "#f7f9fb"
+      },
+      "action-blue": {
+        "role": "primary",
+        "displayName": "Action Blue",
+        "canonical": "#0051d5"
+      },
+      "structural-navy": {
+        "role": "neutral",
+        "displayName": "Structural Navy",
+        "canonical": "#131b2e"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Editorial Display",
+        "purpose": "First-view headings and report section titles."
+      },
+      "body": {
+        "displayName": "Reading Body",
+        "purpose": "Long-form explanation, metadata, and controls."
+      }
+    },
+    "shadows": [
+      {
+        "name": "floating-control",
+        "value": "0 8px 20px rgba(0, 0, 0, 0.06)",
+        "usage": "Composer and modal surfaces only."
+      }
+    ],
+    "motion": [
+      {
+        "name": "quick",
+        "usage": "Press, hover, and compact overlay transitions."
+      }
+    ],
+    "breakpoints": {
+      "mobile": "0-659px",
+      "adaptive": "660-1019px",
+      "workspace": "1020px+"
+    },
+    "narrative": {
+      "northStar": "The Editorial Research Desk",
+      "rules": [
+        "Keep the source visible.",
+        "Reserve blue for action and state.",
+        "Use typographic rows before cards.",
+        "Never imply ingestion succeeded before the backend confirms it."
+      ]
+    }
+  }
+}

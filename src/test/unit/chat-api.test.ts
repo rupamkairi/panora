@@ -19,10 +19,13 @@ const chatRequest = (messages: unknown[], ip = `192.0.2.${Math.random() * 255}`)
   })
 
 const providerResponse = (content = 'Hello from Panora') =>
-  new Response(JSON.stringify({ choices: [{ message: { content } }] }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-  })
+  new Response(
+    `data: ${JSON.stringify({ choices: [{ delta: { content } }] })}\n\ndata: [DONE]\n\n`,
+    {
+      status: 200,
+      headers: { 'Content-Type': 'text/event-stream' },
+    },
+  )
 
 const callPost = async (request: Request) => {
   const result = await POST(request)
@@ -35,9 +38,7 @@ describe('POST /api/chat', () => {
   test('returns 503 when OpenRouter is not configured', async () => {
     delete process.env.OPENROUTER_API_KEY
 
-    const response = await callPost(
-      chatRequest([{ role: 'user', content: 'Hello' }]),
-    )
+    const response = await callPost(chatRequest([{ role: 'user', content: 'Hello' }]))
 
     expect(response.status).toBe(503)
     await expect(response.json()).resolves.toEqual({
@@ -75,7 +76,7 @@ describe('POST /api/chat', () => {
     })
   })
 
-  test('maps a successful OpenRouter response to the public response shape', async () => {
+  test('maps a successful OpenRouter stream to public delta events', async () => {
     process.env.OPENROUTER_API_KEY = 'test-key'
     const fetchMock = vi.fn().mockResolvedValue(providerResponse('  Useful answer  '))
     vi.stubGlobal('fetch', fetchMock)
@@ -83,9 +84,11 @@ describe('POST /api/chat', () => {
     const response = await callPost(chatRequest([{ role: 'user', content: 'Hello' }]))
 
     expect(response.status).toBe(200)
-    await expect(response.json()).resolves.toEqual({
-      message: { role: 'assistant', content: 'Useful answer' },
-    })
+    const body = await response.text()
+    expect(response.headers.get('Content-Type')).toContain('text/event-stream')
+    expect(body).toContain('"type":"delta"')
+    expect(body).toContain('Useful answer')
+    expect(body).toContain('"type":"complete"')
   })
 
   test('normalizes provider failures', async () => {

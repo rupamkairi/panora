@@ -12,6 +12,8 @@ declare module 'one' {
         | `/auth`
         | `/auth/login`
         | `/auth/login/password`
+        | `/settings`
+        | `/ui`
       DynamicRoutes: `/auth/signup/${OneRouter.SingleRoutePart<T>}`
       DynamicRouteTemplate: `/auth/signup/[method]`
       IsTyped: true

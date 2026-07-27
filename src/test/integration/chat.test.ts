@@ -2,44 +2,57 @@ import { expect, test } from '@playwright/test'
 
 test.beforeEach(async ({ page }) => {
   await page.route('**/api/chat', async (route) => {
-    await new Promise((resolve) => setTimeout(resolve, 250))
+    await new Promise((resolve) => setTimeout(resolve, 100))
     await route.fulfill({
       status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        message: {
-          role: 'assistant',
-          content: '# Findings\n\nThe **main result** is clear.\n\n- First outcome',
-        },
-      }),
+      contentType: 'text/event-stream',
+      body: [
+        `data: ${JSON.stringify({ type: 'delta', content: '# Findings\\n\\n' })}`,
+        `data: ${JSON.stringify({ type: 'delta', content: 'The **main result** is clear.\\n\\n- First outcome' })}`,
+        `data: ${JSON.stringify({ type: 'complete' })}`,
+        '',
+      ].join('\n\n'),
     })
   })
 })
 
-test('opens directly on the Panora chat landing page', async ({ page }) => {
+test('opens as a familiar empty mobile chat', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
 
-  await expect(page.getByText('What can I do for you today?')).toBeVisible()
+  await expect(page.getByText('What would you like to understand?')).toBeVisible()
   await expect(page.getByLabel('Message Panora')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Analyze Report' })).toBeVisible()
+  await expect(page.getByLabel('Open conversation sidebar')).toBeVisible()
+  await expect(page.getByLabel('Add context')).toBeVisible()
 })
 
-test('sends text, renders Markdown, and preserves a draft typed while waiting', async ({
+test('opens grouped history and settings from the sidebar', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+  await page.getByLabel('Open conversation sidebar').click()
+  await expect(page.getByRole('button', { name: 'New chat' })).toBeVisible()
+  await page.getByRole('button', { name: 'Settings' }).click()
+  await expect(page.getByText('Saffron & Espresso')).toBeVisible()
+  await expect(page.getByText('Panora does not use dark mode.')).toBeVisible()
+})
+
+test('selects report context and sends a streaming Markdown message', async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
-  const composer = page.getByLabel('Message Panora')
-  const sendButton = page.getByRole('button', { name: 'Send message' })
+  await page.getByLabel('Add context').click()
+  await page.getByRole('button', { name: /Choose reports/ }).last().click()
+  await expect(page.getByLabel('Search reports')).toBeVisible()
+  await page.getByLabel('Select AI Index Report 2025').click()
+  await page.getByRole('button', { name: 'Add 1 report' }).click()
+  await expect(
+    page.getByTestId('app-container').getByText('AI Index Report 2025').last(),
+  ).toBeVisible()
 
-  await composer.fill('Analyze the annual report.')
-  await expect(sendButton).toBeEnabled()
-  await sendButton.click()
-  await expect(composer).toHaveValue('')
-  await composer.fill('My next question')
-
-  await expect(page.getByText('Analyze the annual report.', { exact: true })).toBeVisible()
+  await page.getByLabel('Message Panora').fill('What is the central argument?')
+  await page.getByLabel('Send message').click()
   await expect(page.getByText('Findings')).toBeVisible()
   await expect(page.getByText('main result')).toBeVisible()
   await expect(page.getByText('First outcome')).toBeVisible()
-  await expect(composer).toHaveValue('My next question')
 })

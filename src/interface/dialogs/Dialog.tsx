@@ -83,12 +83,12 @@ export function DialogProvider({ children }: { children: ReactNode }) {
                 {state.type === 'confirm' ? (
                   <>
                     <Button onPress={() => handleClose(false)}>Cancel</Button>
-                    <Button theme="blue" onPress={() => handleClose(true)}>
+                    <Button background="$accent" onPress={() => handleClose(true)}>
                       Confirm
                     </Button>
                   </>
                 ) : (
-                  <Button theme="blue" onPress={() => handleClose(false)}>
+                  <Button background="$accent" onPress={() => handleClose(false)}>
                     OK
                   </Button>
                 )}

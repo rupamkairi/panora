@@ -1,18 +1,16 @@
 import { router, useParams } from 'one'
 import { useState } from 'react'
 import { Keyboard } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { YStack } from 'tamagui'
 
 import { passwordLogin } from '~/features/auth/client/passwordLogin'
-import { Button } from '~/interface/buttons/Button'
+import { Button, Heading, Input, Page, Text } from '~/interface/components'
 import { showError } from '~/interface/dialogs/actions'
-import { Input } from '~/interface/forms/Input'
-import { PasswordIcon } from '~/interface/icons/phosphor/PasswordIcon'
-import { KeyboardStickyFooter } from '~/interface/keyboard/KeyboardStickyFooter'
-import { StepPageLayout } from '~/interface/pages/StepPageLayout'
 
 export const PasswordPage = () => {
   const params = useParams<{ value?: string }>()
+  const insets = useSafeAreaInsets()
   const [loading, setLoading] = useState<boolean>(false)
 
   const displayValue = params.value || 'example@gmail.com'
@@ -44,34 +42,31 @@ export const PasswordPage = () => {
   }
 
   return (
-    <StepPageLayout
-      title="Enter Password"
-      Icon={PasswordIcon}
-      description="Please enter the password for"
-      descriptionSecondLine={displayValue}
-      bottom={
-        <KeyboardStickyFooter openedOffset={-10}>
+    <Page px="$4" pt={insets.top} pb={Math.max(insets.bottom, 16)}>
+      <YStack flex={1} justify="center" items="center">
+        <YStack width="100%" maxW={380} px="$2" gap="$5">
+          <YStack gap="$1">
+            <Heading level="h3">Enter password</Heading>
+            <Text tone="secondary">Use the password for {displayValue}.</Text>
+          </YStack>
+          <Input
+            data-testid="password-input"
+            type="password"
+            autoFocus
+            value={password}
+            aria-label="Password"
+            onChange={(e) => setPassword((e.target as HTMLInputElement).value)}
+            onSubmitEditing={handleContinue}
+          />
           <Button
             data-testid="submit-password-button"
-            size="$5"
             onPress={handleContinue}
             disabled={!password || loading}
           >
             {loading ? 'Verifying...' : 'Next'}
           </Button>
-        </KeyboardStickyFooter>
-      }
-    >
-      <YStack>
-        <Input
-          data-testid="password-input"
-          type="password"
-          autoFocus
-          value={password}
-          onChange={(e) => setPassword((e.target as HTMLInputElement).value)}
-          onSubmitEditing={handleContinue}
-        />
+        </YStack>
       </YStack>
-    </StepPageLayout>
+    </Page>
   )
 }

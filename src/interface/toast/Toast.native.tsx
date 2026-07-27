@@ -30,6 +30,8 @@ import { toastEmitter } from './emitter'
 
 import type { ToastData, ToastType } from './types'
 
+export { showToast } from './helpers'
+
 const BANNER_HEIGHT = 78
 const TOP_OFFSET = 12
 const DEFAULT_DURATION = 3000
@@ -38,18 +40,8 @@ const VELOCITY_THRESHOLD = 500
 const SLIDE_UP_DISTANCE = BANNER_HEIGHT + TOP_OFFSET
 const RESISTANCE_FACTOR = 0.15
 
-function getThemeForType(type?: ToastType): ThemeName | null {
-  switch (type) {
-    case 'error':
-      return 'red'
-    case 'warn':
-      return 'yellow'
-    case 'success':
-      return 'green'
-    case 'info':
-    case undefined:
-      return null
-  }
+function getThemeForType(_type?: ToastType): ThemeName | null {
+  return null
 }
 
 const createEnteringAnimation = () =>

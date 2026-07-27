@@ -105,20 +105,64 @@ export const POST: Endpoint = async (request) => {
         body: JSON.stringify({
           model: process.env['OPENROUTER_MODEL'] || CHAT_MODEL,
           messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...parsed.messages],
+          stream: true,
         }),
         signal: timeoutController.signal,
       })
 
-      const payload = (await response.json().catch(() => null)) as {
-        choices?: { message?: { content?: string } }[]
-      } | null
-      const content = payload?.choices?.[0]?.message?.content?.trim()
-
-      if (!response.ok || !content) {
+      if (!response.ok || !response.body) {
         return jsonError('The AI provider could not complete the request.', 502)
       }
-
-      return Response.json({ message: { role: 'assistant', content } })
+      const decoder = new TextDecoder()
+      const encoder = new TextEncoder()
+      const reader = response.body.getReader()
+      let buffer = ''
+      const stream = new ReadableStream({
+        async pull(controller) {
+          const { done, value } = await reader.read()
+          if (done) {
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ type: 'complete' })}\n\n`),
+            )
+            controller.close()
+            return
+          }
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop() ?? ''
+          for (const line of lines) {
+            if (!line.startsWith('data:')) continue
+            const raw = line.slice(5).trim()
+            if (!raw || raw === '[DONE]') continue
+            try {
+              const chunk = JSON.parse(raw) as {
+                choices?: { delta?: { content?: string } }[]
+              }
+              const content = chunk.choices?.[0]?.delta?.content
+              if (content) {
+                controller.enqueue(
+                  encoder.encode(
+                    `data: ${JSON.stringify({ type: 'delta', content })}\n\n`,
+                  ),
+                )
+              }
+            } catch {
+              // Ignore non-content provider frames.
+            }
+          }
+        },
+        cancel() {
+          timeoutController.abort()
+          void reader.cancel()
+        },
+      })
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
+        },
+      })
     } catch (error) {
       if (didTimeout) return jsonError('The AI provider took too long to respond.', 504)
       if (request.signal.aborted) return jsonError('The request was cancelled.', 499)

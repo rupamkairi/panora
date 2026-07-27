@@ -80,15 +80,7 @@ const ToastDisplay = () => {
       bg="$color2"
       py="$2.5"
       px="$4"
-      theme={
-        toastType === 'error'
-          ? 'red'
-          : toastType === 'warn'
-            ? 'yellow'
-            : toastType === 'success'
-              ? 'green'
-              : null
-      }
+      theme={null}
       shadowColor="$shadow2"
       shadowRadius={8}
       shadowOffset={{ height: 4, width: 0 }}

@@ -1,220 +1,391 @@
-import { useEffect, useRef } from 'react'
-import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { SizableText, Spinner, XStack, YStack } from 'tamagui'
+import * as Clipboard from 'expo-clipboard'
+import { useRouter } from 'one'
+import { useEffect, useRef, useState } from 'react'
+import { KeyboardAvoidingView, Platform, ScrollView, Share } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { XStack, YStack, useTheme } from 'tamagui'
 
-import { IconButton } from '~/interface/buttons/IconButton'
-import { Button } from '~/interface/buttons/Button'
-import { Chip } from '~/interface/chips/Chip'
-import {
-  BodyLargeText,
-  BodySmallText,
-  HeadlineText,
-  LabelText,
-} from '~/interface/design/Typography'
-import {
-  ChartIcon,
-  CompareIcon,
-  SparkIcon,
-  TrendIcon,
-} from '~/interface/icons/phosphor/ChatActionIcons'
-import { ListIcon } from '~/interface/icons/phosphor/ListIcon'
-import { UserIcon } from '~/interface/icons/phosphor/UserIcon'
-
-import { STARTER_PROMPTS } from '../constants'
-import { createSessionTitle } from '../markdown'
+import type { Conversation } from '../types'
 import { useChat } from '../useChat'
+import { STARTER_PROMPTS } from '../constants'
+import { LogoIcon } from '~/interface/app/LogoIcon'
+import { Button, IconButton, Popover, Text } from '~/interface/components'
+import {
+  MenuIcon,
+  MoreIcon,
+  PlusIcon,
+  ShareIcon,
+  TrashIcon,
+} from '~/interface/icons/ChatIcons'
 import { ChatComposer } from './ChatComposer'
+import { ChatErrorBoundary } from './ChatErrorBoundary'
+import { ChatSidebar } from './ChatSidebar'
 import { MarkdownText } from './MarkdownText'
 
-const promptIcons = { chart: ChartIcon, compare: CompareIcon, trend: TrendIcon }
+const shareConversation = async (
+  conversation: Pick<Conversation, 'title' | 'messages'>,
+) => {
+  const content = conversation.messages
+    .map(
+      (message) =>
+        `## ${message.role === 'user' ? 'You' : 'Panora'}\n\n${message.content}`,
+    )
+    .join('\n\n')
+  await Share.share({
+    title: conversation.title,
+    message: `# ${conversation.title}\n\n${content}`,
+  })
+}
 
 export function ChatScreen() {
-  const insets = useSafeAreaInsets()
+  const router = useRouter()
+  const theme = useTheme()
   const scrollRef = useRef<ScrollView>(null)
-  const { messages, isSending, error, canRetry, send, retry } = useChat()
-  const hasMessages = messages.length > 0
-  const firstPrompt = messages.find((message) => message.role === 'user')?.content || ''
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const chat = useChat()
+  const hasMessages = chat.messages.length > 0
+  const current = chat.conversations.find((item) => item.id === chat.conversationId)
+  const title = current?.title ?? 'New chat'
 
   useEffect(() => {
-    if (hasMessages || isSending) {
+    if (hasMessages || chat.isSending) {
       requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }))
     }
-  }, [hasMessages, isSending, messages])
+  }, [chat.isSending, chat.messages, hasMessages])
+
+  const shareCurrent = () =>
+    void shareConversation({
+      title,
+      messages: chat.messages,
+    })
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#F7F9FB' }} edges={['top']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
-      >
-        <XStack
-          height={76}
-          px="$6"
-          items="center"
-          justify="space-between"
-          bg="#F8FAFC"
-          borderBottomColor="#E2E8F0"
-          borderBottomWidth={1}
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.background?.val as string }}
+      edges={['top', 'bottom']}
+    >
+      <ChatErrorBoundary>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1 }}
         >
-          <IconButton aria-label="Open menu" role="button" variant="ghost">
-            <ListIcon size={28} />
-          </IconButton>
-          <SizableText
-            color="#000000"
-            fontFamily="$heading"
-            fontSize={18}
-            fontWeight="700"
-            letterSpacing={4}
+          <XStack
+            height={52}
+            px="$2"
+            items="center"
+            borderBottomWidth={1}
+            borderBottomColor="$outlineVariant"
           >
-            PANORA
-          </SizableText>
-          <IconButton aria-label="Profile" role="button" variant="outlined">
-            <UserIcon size={23} />
-          </IconButton>
-        </XStack>
+            <IconButton
+              aria-label="Open conversation sidebar"
+              onPress={() => setSidebarOpen(true)}
+            >
+              <MenuIcon color={theme.content?.val as string} />
+            </IconButton>
+            <Text flex={1} center size="sm" weight="semibold" numberOfLines={1} px="$2">
+              {title}
+            </Text>
+            <Popover
+              open={menuOpen}
+              onOpenChange={setMenuOpen}
+              placement="bottom-end"
+              adaptToSheet={false}
+              menu
+              content={
+                <YStack width={212}>
+                  <MenuButton
+                    label="Share conversation"
+                    icon="share"
+                    onPress={() => {
+                      setMenuOpen(false)
+                      shareCurrent()
+                    }}
+                  />
+                  <MenuButton
+                    label="Delete conversation"
+                    icon="delete"
+                    destructive
+                    disabled={!current}
+                    onPress={() => {
+                      if (current) chat.deleteConversation(current.id)
+                      setMenuOpen(false)
+                    }}
+                  />
+                </YStack>
+              }
+            >
+              <IconButton aria-label="Conversation actions">
+                <MoreIcon color={theme.content?.val as string} />
+              </IconButton>
+            </Popover>
+          </XStack>
 
-        <ScrollView
-          ref={scrollRef}
-          contentContainerStyle={{ flexGrow: 1 }}
-          keyboardDismissMode="interactive"
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <YStack
-            flex={1}
-            width="100%"
-            maxW={720}
-            mx="auto"
-            px="$4"
-            py="$7"
-            justify={hasMessages ? 'flex-start' : 'center'}
+          <ScrollView
+            ref={scrollRef}
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardDismissMode="interactive"
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            {!hasMessages ? (
-              <YStack items="center" pb="$3">
-                <HeadlineText text="center" $sm={{ fontSize: 24, lineHeight: 29 }}>
-                  What can I do for you today?
-                </HeadlineText>
-                <YStack mt="$10" gap="$4" items="center">
-                  {STARTER_PROMPTS.map((prompt) => {
-                    const Icon = promptIcons[prompt.icon]
-                    return (
-                      <Chip
-                        key={prompt.label}
-                        aria-disabled={isSending}
-                        role="button"
-                        onPress={() => send(prompt.label)}
-                        opacity={isSending ? 0.6 : 1}
-                        pointerEvents={isSending ? 'none' : 'auto'}
-                        width={230}
-                        height={52}
-                      >
-                        <Icon size={20} />
-                        <BodyLargeText fontWeight="500">{prompt.label}</BodyLargeText>
-                      </Chip>
-                    )
-                  })}
-                </YStack>
-              </YStack>
-            ) : (
-              <YStack gap="$7" pt="$3">
-                <YStack items="center" mb="$3">
-                  <LabelText color="#45464D" letterSpacing={1.5}>
-                    ACTIVE SESSION
-                  </LabelText>
-                  <HeadlineText mt="$3" text="center" fontSize={27} lineHeight={34}>
-                    {createSessionTitle(firstPrompt)}
-                  </HeadlineText>
-                </YStack>
-                {messages.map((message) =>
-                  message.role === 'user' ? (
-                    <YStack
-                      key={message.id}
-                      self="flex-end"
-                      maxW="84%"
-                      p="$5"
-                      bg="#FFFFFF"
-                      borderColor="#E2E8F0"
-                      rounded="$4"
-                      borderWidth={1}
-                    >
-                      <BodyLargeText selectable>{message.content}</BodyLargeText>
+            <YStack flex={1} px="$4" pt="$4" pb="$5">
+              {!hasMessages ? (
+                <EmptyChat onPrompt={(prompt) => chat.send(prompt)} />
+              ) : (
+                <YStack gap="$5">
+                  {chat.messages.map((message) =>
+                    message.role === 'user' ? (
+                      <XStack key={message.id} justify="flex-end">
+                        <YStack
+                          maxW="86%"
+                          bg="$accentContainer"
+                          rounded="$5"
+                          borderBottomRightRadius="$2"
+                          px="$4"
+                          py="$3"
+                        >
+                          <Text>{message.content}</Text>
+                        </YStack>
+                      </XStack>
+                    ) : (
+                      <AssistantMessage
+                        key={message.id}
+                        message={message}
+                        onRetry={(kind) => chat.retry(kind)}
+                        onFeedback={(feedback) =>
+                          chat.setFeedback(
+                            message.id,
+                            message.feedback === feedback ? null : feedback,
+                          )
+                        }
+                      />
+                    ),
+                  )}
+                  {chat.error ? (
+                    <YStack bg="$destructiveContainer" rounded="$3" px="$3" py="$2">
+                      <Text size="sm" tone="destructive">
+                        {chat.error}
+                      </Text>
+                      {chat.canRetry ? (
+                        <Button
+                          mt="$2"
+                          self="flex-start"
+                          size="$2"
+                          variant="ghost"
+                          onPress={() => chat.retry('retry')}
+                        >
+                          Try again
+                        </Button>
+                      ) : null}
                     </YStack>
-                  ) : (
-                    <AssistantMessage key={message.id}>
-                      <MarkdownText>{message.content}</MarkdownText>
-                    </AssistantMessage>
-                  ),
-                )}
-                {isSending && (
-                  <AssistantMessage>
-                    <BodyTextItalic>Panora is thinking…</BodyTextItalic>
-                  </AssistantMessage>
-                )}
-                {error && (
-                  <YStack ml={54} gap="$3" items="flex-start">
-                    <BodySmallText role="alert" color="#BA1A1A">
-                      {error}
-                    </BodySmallText>
-                    {canRetry && (
-                      <Button
-                        role="button"
-                        variant="outlined"
-                        onPress={retry}
-                        height={36}
-                        px="$4"
-                      >
-                        Retry
-                      </Button>
-                    )}
-                  </YStack>
-                )}
-              </YStack>
-            )}
-          </YStack>
-        </ScrollView>
+                  ) : null}
+                </YStack>
+              )}
+            </YStack>
+          </ScrollView>
 
-        <YStack
-          bg="#F7F9FB"
-          px="$4"
-          pt="$3"
-          pb={Math.max(insets.bottom, 14)}
-          items="center"
-        >
-          <YStack width="100%" maxW={720}>
-            <ChatComposer isSending={isSending} onSend={send} />
-          </YStack>
-        </YStack>
-      </KeyboardAvoidingView>
+          <ChatComposer
+            draft={chat.draft}
+            onDraftChange={chat.setDraft}
+            onSend={chat.send}
+            onStop={chat.stop}
+            isSending={chat.isSending}
+            contextItems={chat.contextItems}
+            onAddContextItems={chat.addContextItems}
+            onRemoveContextItem={chat.removeContextItem}
+          />
+        </KeyboardAvoidingView>
+      </ChatErrorBoundary>
+
+      <ChatSidebar
+        open={sidebarOpen}
+        onOpenChange={setSidebarOpen}
+        activeId={chat.conversationId}
+        groups={chat.groupedConversations}
+        onNew={chat.newConversation}
+        onOpen={chat.openConversation}
+        onPin={chat.togglePinned}
+        onShare={(conversation) => void shareConversation(conversation)}
+        onDelete={chat.deleteConversation}
+        onSettings={() => {
+          setSidebarOpen(false)
+          router.push('/settings' as never)
+        }}
+      />
     </SafeAreaView>
   )
 }
 
-function AssistantMessage({ children }: { children: React.ReactNode }) {
+function EmptyChat({ onPrompt }: { onPrompt: (prompt: string) => void }) {
   return (
-    <XStack items="flex-start" gap="$3">
-      <YStack
-        width={42}
-        height={42}
-        mt="$1"
-        items="center"
-        justify="center"
-        bg="#131B2E"
-        rounded="$10"
-      >
-        <SparkIcon color="white" size={23} />
+    <YStack flex={1} justify="center" pb="$8" gap="$6">
+      <YStack items="center" gap="$2">
+        <LogoIcon size={64} />
+        <Text size="xl" weight="semibold" center>
+          What would you like to understand?
+        </Text>
+        <Text size="sm" tone="secondary" center>
+          Ask freely, or ground the conversation in up to five reports.
+        </Text>
       </YStack>
-      <YStack flex={1} borderLeftColor="#0051D5" borderLeftWidth={3} pl="$5" py="$1">
-        {children}
+      <YStack gap="$2">
+        {STARTER_PROMPTS.slice(0, 4).map((prompt, index) => (
+          <Button
+            key={prompt.label}
+            variant="ghost"
+            minH={48}
+            px="$3"
+            justify="flex-start"
+            borderWidth={1}
+            borderColor="$outlineVariant"
+            icon={<PlusIcon size={16} />}
+            onPress={() => onPrompt(prompt.prompt)}
+          >
+            {prompt.label}
+          </Button>
+        ))}
       </YStack>
-    </XStack>
+    </YStack>
   )
 }
 
-function BodyTextItalic({ children }: { children: string }) {
+function AssistantMessage({
+  message,
+  onRetry,
+  onFeedback,
+}: {
+  message: ReturnType<typeof useChat>['messages'][number]
+  onRetry: (kind: 'retry' | 'extend' | 'shorten') => void
+  onFeedback: (feedback: 'up' | 'down') => void
+}) {
+  const [retryOpen, setRetryOpen] = useState(false)
   return (
-    <BodyLargeText color="#45464D" fontStyle="italic" fontSize={16} lineHeight={25}>
-      {children}
-    </BodyLargeText>
+    <YStack gap="$2">
+      {message.content ? (
+        <MarkdownText streaming={message.status === 'streaming'}>
+          {message.content}
+        </MarkdownText>
+      ) : (
+        <Text tone="secondary">Thinking…</Text>
+      )}
+      {message.status !== 'streaming' && message.content ? (
+        <XStack gap="$1" flexWrap="wrap">
+          <ActionButton
+            label="Copy"
+            onPress={() => void Clipboard.setStringAsync(message.content)}
+          />
+          <Popover
+            open={retryOpen}
+            onOpenChange={setRetryOpen}
+            content={
+              <YStack width={140}>
+                {(['retry', 'extend', 'shorten'] as const).map((kind) => (
+                  <MenuButton
+                    key={kind}
+                    label={`${kind.charAt(0).toUpperCase()}${kind.slice(1)}`}
+                    onPress={() => {
+                      onRetry(kind)
+                      setRetryOpen(false)
+                    }}
+                  />
+                ))}
+              </YStack>
+            }
+          >
+            <Button size="$2" variant="ghost">
+              Retry
+            </Button>
+          </Popover>
+          <ActionButton
+            label="Share"
+            onPress={() => void Share.share({ message: message.content })}
+          />
+          <ActionButton
+            label={message.feedback === 'up' ? 'Liked' : 'Helpful'}
+            selected={message.feedback === 'up'}
+            onPress={() => onFeedback('up')}
+          />
+          <ActionButton
+            label={message.feedback === 'down' ? 'Disliked' : 'Not helpful'}
+            selected={message.feedback === 'down'}
+            onPress={() => onFeedback('down')}
+          />
+        </XStack>
+      ) : null}
+    </YStack>
+  )
+}
+
+function ActionButton({
+  label,
+  onPress,
+  selected = false,
+}: {
+  label: string
+  onPress: () => void
+  selected?: boolean
+}) {
+  return (
+    <Button
+      size="$2"
+      variant="ghost"
+      bg={selected ? '$surface1' : '$transparent'}
+      onPress={onPress}
+    >
+      {label}
+    </Button>
+  )
+}
+
+function MenuButton({
+  label,
+  onPress,
+  icon,
+  destructive = false,
+  disabled = false,
+}: {
+  label: string
+  onPress: () => void
+  icon?: 'share' | 'delete'
+  destructive?: boolean
+  disabled?: boolean
+}) {
+  const theme = useTheme()
+  const tone = disabled ? 'secondary' : destructive ? 'destructive' : 'neutral'
+  const iconColor = disabled
+    ? (theme.contentSecondary?.val as string)
+    : destructive
+      ? (theme.destructive?.val as string)
+      : (theme.content?.val as string)
+  return (
+    <Button
+      unstyled
+      height={56}
+      width="100%"
+      borderWidth={0}
+      rounded={0}
+      bg="$transparent"
+      opacity={disabled ? 0.4 : 1}
+      disabled={disabled}
+      hoverStyle={{ bg: '$surface1' }}
+      pressStyle={{ bg: '$surface2', scale: 0.99 }}
+      focusVisibleStyle={{
+        outlineWidth: 0,
+        bg: '$surface2',
+      }}
+      onPress={onPress}
+    >
+      <XStack width="100%" height="100%" items="center">
+        <XStack width={52} height="100%" items="center" justify="center">
+          {icon === 'share' ? <ShareIcon color={iconColor} /> : null}
+          {icon === 'delete' ? <TrashIcon color={iconColor} /> : null}
+        </XStack>
+        <XStack flex={1} height="100%" items="center">
+          <Text size="sm" weight="medium" tone={tone} lineHeight={20}>
+            {label}
+          </Text>
+        </XStack>
+      </XStack>
+    </Button>
   )
 }

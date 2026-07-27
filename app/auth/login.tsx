@@ -1,12 +1,11 @@
-import { Circle, isWeb, XStack, YStack } from 'tamagui'
+import { XStack, YStack } from 'tamagui'
 
 import { APP_NAME } from '~/constants/app'
 import { Link } from '~/interface/app/Link'
 import { LogoIcon } from '~/interface/app/LogoIcon'
-import { Button } from '~/interface/buttons/Button'
+import { Button, Heading, Page, Text } from '~/interface/components'
 import { AppleIcon } from '~/interface/icons/AppleIcon'
 import { GoogleIcon } from '~/interface/icons/GoogleIcon'
-import { H2 } from '~/interface/text/Headings'
 import { showToast } from '~/interface/toast/helpers'
 
 export const LoginPage = () => {
@@ -15,40 +14,25 @@ export const LoginPage = () => {
   }
 
   return (
-    <YStack
-      flex={1}
-      justify="center"
-      items="center"
-      $platform-web={{ minHeight: '100vh' }}
-    >
-      <Circle
-        size={80}
-        my="$4"
-        transition="medium"
-        enterStyle={{ scale: 0.95, opacity: 0 }}
-      >
-        <LogoIcon size={42} />
-      </Circle>
-
-      <YStack
-        gap="$6"
-        width="100%"
-        items="center"
-        bg="$background"
-        rounded="$8"
-        p={isWeb ? '$6' : '$4'}
-        maxW={isWeb ? 400 : '90%'}
-      >
-        <H2 text="center">Login to {APP_NAME}</H2>
+    <Page justify="center" items="center" px="$4" $platform-web={{ minHeight: '100vh' }}>
+      <YStack width="100%" maxW={380} px="$2" gap="$6">
+        <YStack items="center" gap="$3">
+          <LogoIcon size={72} />
+          <YStack items="center" gap="$1">
+            <Heading level="h3" text="center">
+              Welcome to {APP_NAME}
+            </Heading>
+            <Text tone="secondary" text="center">
+              Continue with your preferred sign-in method.
+            </Text>
+          </YStack>
+        </YStack>
 
         <YStack
           key="welcome-content"
-          gap="$4"
+          gap="$3"
           items="center"
           width="100%"
-          transition="medium"
-          enterStyle={{ opacity: 0, y: 10 }}
-          exitStyle={{ opacity: 0, y: -10 }}
           position="relative"
           overflow="hidden"
         >
@@ -60,17 +44,7 @@ export const LoginPage = () => {
               }}
               asChild
             >
-              <Button
-                size="$5"
-                theme="dark_blue"
-                variant="floating"
-                pressStyle={{
-                  scale: 0.97,
-                  opacity: 0.9,
-                }}
-                transition="200ms"
-                enterStyle={{ opacity: 0, scale: 0.95 }}
-              >
+              <Button variant="primary" width="100%">
                 Continue with Email
               </Button>
             </Link>
@@ -78,7 +52,9 @@ export const LoginPage = () => {
 
           <XStack width="100%" gap="$3" justify="center" overflow="visible">
             <Button
-              size="$5"
+              uiSize="md"
+              variant="secondary"
+              flex={1}
               onPress={() => handleSocialLogin('google')}
               pressStyle={{
                 scale: 0.97,
@@ -87,13 +63,15 @@ export const LoginPage = () => {
               hoverStyle={{
                 bg: '$color2',
               }}
-              transition="200ms"
-              enterStyle={{ opacity: 0, scale: 0.95 }}
               icon={<GoogleIcon size={18} />}
-            />
+            >
+              Google
+            </Button>
 
             <Button
-              size="$5"
+              uiSize="md"
+              variant="secondary"
+              flex={1}
               onPress={() => handleSocialLogin('apple')}
               pressStyle={{
                 scale: 0.97,
@@ -102,13 +80,13 @@ export const LoginPage = () => {
               hoverStyle={{
                 bg: '$color2',
               }}
-              transition="200ms"
-              enterStyle={{ opacity: 0, scale: 0.95 }}
               icon={<AppleIcon size={20} />}
-            />
+            >
+              Apple
+            </Button>
           </XStack>
         </YStack>
       </YStack>
-    </YStack>
+    </Page>
   )
 }

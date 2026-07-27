@@ -1,4 +1,9 @@
-import type { ChatMessage } from './types'
+import type {
+  ChatMessage,
+  ChatStreamEvent,
+  ChatTransport,
+  MessageFeedback,
+} from './types'
 
 export type ChatSnapshot = {
   messages: ChatMessage[]
@@ -7,12 +12,8 @@ export type ChatSnapshot = {
   canRetry: boolean
 }
 
-export type ChatTransport = (
-  messages: ChatMessage[],
-  signal?: AbortSignal,
-) => Promise<string>
-
 const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`
+const now = () => new Date().toISOString()
 
 const initialSnapshot: ChatSnapshot = {
   messages: [],
@@ -30,7 +31,6 @@ export class ChatSession {
   constructor(private readonly transport: ChatTransport) {}
 
   getSnapshot = () => this.snapshot
-
   subscribe = (listener: () => void) => {
     this.listeners.add(listener)
     return () => this.listeners.delete(listener)
@@ -43,19 +43,85 @@ export class ChatSession {
   send = (content: string) => {
     const text = content.trim()
     if (!text || this.request || this.disposed) return false
-
-    const userMessage: ChatMessage = { id: createId(), role: 'user', content: text }
+    const userMessage: ChatMessage = {
+      id: createId(),
+      role: 'user',
+      content: text,
+      createdAt: now(),
+      status: 'complete',
+    }
     const messages = [...this.snapshot.messages, userMessage]
     this.update({ messages, isSending: true, error: null, canRetry: false })
     this.startRequest(messages)
     return true
   }
 
-  retry = () => {
-    if (this.request || this.disposed || !this.snapshot.canRetry) return false
-    this.update({ ...this.snapshot, isSending: true, error: null, canRetry: false })
-    this.startRequest(this.snapshot.messages)
+  retry = (instruction?: 'retry' | 'extend' | 'shorten') => {
+    if (this.request || this.disposed || this.snapshot.messages.length === 0) return false
+    const withoutFailed = this.snapshot.messages.filter(
+      (message) => !(message.role === 'assistant' && message.status === 'failed'),
+    )
+    const requestMessages =
+      instruction && instruction !== 'retry'
+        ? [
+            ...withoutFailed,
+            {
+              id: createId(),
+              role: 'user' as const,
+              content:
+                instruction === 'extend'
+                  ? 'Continue the previous answer with useful additional detail.'
+                  : 'Rewrite the previous answer more concisely.',
+              createdAt: now(),
+              status: 'complete' as const,
+            },
+          ]
+        : withoutFailed
+    this.update({
+      messages: requestMessages,
+      isSending: true,
+      error: null,
+      canRetry: false,
+    })
+    this.startRequest(requestMessages)
     return true
+  }
+
+  stop = () => {
+    if (!this.request) return false
+    this.request.abort()
+    this.request = null
+    this.update({
+      ...this.snapshot,
+      messages: this.snapshot.messages.map((message) =>
+        message.status === 'streaming' ? { ...message, status: 'stopped' } : message,
+      ),
+      isSending: false,
+      error: null,
+      canRetry: true,
+    })
+    return true
+  }
+
+  setFeedback = (id: string, feedback: MessageFeedback) => {
+    this.update({
+      ...this.snapshot,
+      messages: this.snapshot.messages.map((message) =>
+        message.id === id ? { ...message, feedback } : message,
+      ),
+    })
+  }
+
+  reset = () => {
+    this.request?.abort()
+    this.request = null
+    this.update(initialSnapshot)
+  }
+
+  restore = (snapshot: ChatSnapshot) => {
+    this.request?.abort()
+    this.request = null
+    this.update({ ...snapshot, isSending: false, error: null, canRetry: false })
   }
 
   dispose = () => {
@@ -67,25 +133,55 @@ export class ChatSession {
   private startRequest(messages: ChatMessage[]) {
     const controller = new AbortController()
     this.request = controller
+    const assistantId = createId()
 
-    void this.transport(messages, controller.signal)
-      .then((content) => {
-        if (this.disposed || this.request !== controller) return
+    const onEvent = (event: ChatStreamEvent) => {
+      if (this.disposed || this.request !== controller) return
+      if (event.type === 'start') {
         this.update({
+          ...this.snapshot,
           messages: [
             ...this.snapshot.messages,
-            { id: createId(), role: 'assistant', content },
+            {
+              id: assistantId,
+              role: 'assistant',
+              content: '',
+              createdAt: now(),
+              status: 'streaming',
+            },
           ],
+        })
+      } else if (event.type === 'delta') {
+        this.update({
+          ...this.snapshot,
+          messages: this.snapshot.messages.map((message) =>
+            message.id === assistantId
+              ? { ...message, content: message.content + event.content }
+              : message,
+          ),
+        })
+      } else {
+        this.update({
+          ...this.snapshot,
+          messages: this.snapshot.messages.map((message) =>
+            message.id === assistantId ? { ...message, status: 'complete' } : message,
+          ),
           isSending: false,
           error: null,
           canRetry: false,
         })
-      })
+      }
+    }
+
+    void this.transport(messages, onEvent, controller.signal)
       .catch((cause: unknown) => {
         if (this.disposed || this.request !== controller || controller.signal.aborted)
           return
         this.update({
           ...this.snapshot,
+          messages: this.snapshot.messages.map((message) =>
+            message.id === assistantId ? { ...message, status: 'failed' } : message,
+          ),
           isSending: false,
           error: cause instanceof Error ? cause.message : 'Something went wrong.',
           canRetry: true,

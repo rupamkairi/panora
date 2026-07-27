@@ -4,11 +4,16 @@ import { ChatSession } from '~/features/chat/session'
 
 describe('ChatSession', () => {
   test('accepts only one submission while a response is pending', async () => {
-    let resolveReply: (reply: string) => void = () => undefined
+    let resolveReply: () => void = () => undefined
     const transport = vi.fn(
-      () =>
-        new Promise<string>((resolve) => {
-          resolveReply = resolve
+      (_messages, onEvent) =>
+        new Promise<void>((resolve) => {
+          onEvent({ type: 'start' })
+          resolveReply = () => {
+            onEvent({ type: 'delta', content: 'First reply' })
+            onEvent({ type: 'complete' })
+            resolve()
+          }
         }),
     )
     const session = new ChatSession(transport)
@@ -17,18 +22,23 @@ describe('ChatSession', () => {
     expect(session.send('Second message')).toBe(false)
     expect(session.getSnapshot().messages.map(({ content }) => content)).toEqual([
       'First message',
+      '',
     ])
 
-    resolveReply('First reply')
+    resolveReply()
     await vi.waitFor(() => expect(session.getSnapshot().isSending).toBe(false))
     expect(transport).toHaveBeenCalledTimes(1)
   })
 
   test('preserves a failed user message and retries it without duplication', async () => {
-    const transport = vi
-      .fn()
+    const transport = vi.fn()
+    transport
       .mockRejectedValueOnce(new Error('Connection lost'))
-      .mockResolvedValueOnce('Recovered reply')
+      .mockImplementationOnce(async (_messages, onEvent) => {
+        onEvent({ type: 'start' })
+        onEvent({ type: 'delta', content: 'Recovered reply' })
+        onEvent({ type: 'complete' })
+      })
     const session = new ChatSession(transport)
 
     session.send('Keep this question')
@@ -45,7 +55,7 @@ describe('ChatSession', () => {
 
   test('aborts the active request when disposed', () => {
     let requestSignal: AbortSignal | undefined
-    const session = new ChatSession((_messages, signal) => {
+    const session = new ChatSession((_messages, _onEvent, signal) => {
       requestSignal = signal
       return new Promise(() => undefined)
     })
@@ -57,7 +67,11 @@ describe('ChatSession', () => {
   })
 
   test('can reactivate after a development lifecycle cleanup', async () => {
-    const session = new ChatSession(() => Promise.resolve('Reply'))
+    const session = new ChatSession(async (_messages, onEvent) => {
+      onEvent({ type: 'start' })
+      onEvent({ type: 'delta', content: 'Reply' })
+      onEvent({ type: 'complete' })
+    })
     session.dispose()
     session.activate()
 

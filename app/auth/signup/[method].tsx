@@ -1,14 +1,11 @@
 import { useParams, useRouter, createRoute } from 'one'
 import { memo, useLayoutEffect, useRef, useState } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { SizableText, Spinner, useEvent, XStack, YStack } from 'tamagui'
+import { Spinner, useEvent, XStack, YStack } from 'tamagui'
 
-import { Button } from '~/interface/buttons/Button'
-import { Pressable } from '~/interface/buttons/Pressable'
+import { Button, Heading, IconButton, Input, Page, Text } from '~/interface/components'
 import { showError } from '~/interface/dialogs/actions'
-import { Input } from '~/interface/forms/Input'
 import { CaretLeftIcon } from '~/interface/icons/phosphor/CaretLeftIcon'
-import { PageLayout } from '~/interface/pages/PageLayout'
 
 const route = createRoute<'/auth/signup/[method]'>()
 
@@ -53,66 +50,58 @@ export const SignupPage = memo(() => {
 
   if (method !== 'email') {
     return (
-      <YStack flex={1} bg="$background" pt={top} px="$4">
+      <Page pt={top} px="$4">
         <XStack items="center" gap="$3">
-          <Pressable onPress={handleGoBack}>
+          <IconButton aria-label="Go back" onPress={handleGoBack}>
             <CaretLeftIcon size={24} />
-          </Pressable>
+          </IconButton>
         </XStack>
         <YStack flex={1} items="center" justify="center">
-          <SizableText fontSize={16} opacity={0.6}>
-            Invalid authentication method
-          </SizableText>
+          <Text tone="secondary">Invalid authentication method</Text>
         </YStack>
-      </YStack>
+      </Page>
     )
   }
 
   return (
-    <PageLayout>
-      <YStack flex={1} bg="$background" pt={top} px="$4" gap="$4">
-        <XStack items="center" gap="$3">
-          <Pressable onPress={handleGoBack}>
-            <CaretLeftIcon size={24} />
-          </Pressable>
-          <SizableText size="$6" fontWeight="bold">
-            Continue with Email
-          </SizableText>
-        </XStack>
+    <Page pt={top} px="$4">
+      <XStack height={52} items="center">
+        <IconButton aria-label="Go back" onPress={handleGoBack}>
+          <CaretLeftIcon size={20} />
+        </IconButton>
+      </XStack>
+      <YStack flex={1} justify="center" items="center" pb="$10">
+        <YStack width="100%" maxW={380} px="$2" gap="$5">
+          <YStack gap="$1">
+            <Heading level="h3">Continue with email</Heading>
+            <Text tone="secondary">Sign in or create an account with your email.</Text>
+          </YStack>
+          <YStack gap="$3">
+            <Input
+              data-testid="email-input"
+              ref={inputRef}
+              placeholder="Enter email address"
+              value={inputValue}
+              onChange={(e) => setInputValue((e.target as HTMLInputElement).value)}
+              autoCapitalize="none"
+              onSubmitEditing={handleContinue}
+              type="email"
+              name="email"
+              autoComplete="email"
+              inputMode="email"
+              aria-label="Email address"
+            />
 
-        <SizableText size="$4" color="$color10">
-          Sign in or sign up with your email.
-        </SizableText>
-
-        <YStack gap="$4" mt="$4">
-          <Input
-            data-testid="email-input"
-            ref={inputRef}
-            placeholder="Enter email address"
-            value={inputValue}
-            onChange={(e) => setInputValue((e.target as HTMLInputElement).value)}
-            autoCapitalize="none"
-            onSubmitEditing={handleContinue}
-            type="email"
-            name="email"
-            autoComplete="email"
-            inputMode="email"
-          />
-
-          <Button
-            data-testid="next-button"
-            size="$5"
-            pressStyle={{
-              scale: 0.97,
-              opacity: 0.9,
-            }}
-            onPress={handleContinue}
-            disabled={isDisabled || loading}
-          >
-            {loading ? <Spinner size="small" /> : 'Next'}
-          </Button>
+            <Button
+              data-testid="next-button"
+              onPress={handleContinue}
+              disabled={isDisabled || loading}
+            >
+              {loading ? <Spinner size="small" /> : 'Next'}
+            </Button>
+          </YStack>
         </YStack>
       </YStack>
-    </PageLayout>
+    </Page>
   )
 })

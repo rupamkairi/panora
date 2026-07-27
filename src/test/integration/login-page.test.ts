@@ -86,5 +86,5 @@ test('successful password login returns to the Panora landing page', async ({ pa
   await page.getByTestId('submit-password-button').click()
 
   await expect(page).toHaveURL('http://localhost:8081/')
-  await expect(page.getByText('What can I do for you today?')).toBeVisible()
+  await expect(page.getByText('What would you like to understand?')).toBeVisible()
 })

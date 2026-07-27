@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from 'react'
 import { debounce, SizableText, YStack } from 'tamagui'
-import { Button } from '~/interface/buttons/Button'
+import { Button } from '~/interface/components'
 import { dropAllDatabases } from '@rocicorp/zero'
 import { ZERO_SERVER_URL } from '~/constants/urls'
 import * as groupedQueries from '~/data/generated/groupedQueries'
@@ -167,7 +167,7 @@ function ZeroErrorFallback({ error, onRetry }: { error: Error; onRetry: () => vo
       <SizableText size="$4" color="$color10" text="center">
         {error.message}
       </SizableText>
-      <Button size="$5" theme="accent" onPress={onRetry}>
+      <Button variant="primary" onPress={onRetry}>
         Retry
       </Button>
     </YStack>

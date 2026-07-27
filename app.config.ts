@@ -48,7 +48,7 @@ export default {
     version,
     runtimeVersion: version, // must be set to use hot-updater "appVersion" update strategy
     platforms: ['ios', 'android', 'web'],
-    userInterfaceStyle: 'automatic',
+    userInterfaceStyle: 'light',
     icon: getAppIcon(),
     ios: {
       supportsTablet: false,
@@ -59,10 +59,11 @@ export default {
       },
       infoPlist: {
         NSCameraUsageDescription:
-          '$(PRODUCT_NAME) uses the camera to take profile photos and capture images for AI-powered image creation features.',
-        NSMicrophoneUsageDescription: 'Allow $(PRODUCT_NAME) to access your microphone',
+          'Panora uses the camera when you choose to add a photo to a conversation.',
+        NSMicrophoneUsageDescription:
+          'Panora uses the microphone while you hold the voice button to dictate a message.',
         NSPhotoLibraryUsageDescription:
-          '$(PRODUCT_NAME) accesses your photo library to let you select images for profile pictures and choose photos as input for AI image generation.',
+          'Panora accesses selected photos when you add them as conversation context.',
         NSPhotoLibraryAddUsageDescription:
           '$(PRODUCT_NAME) saves generated AI artwork and edited profile photos to your photo library so you can keep and share your creations.',
         NSAppleMusicUsageDescription:
@@ -75,15 +76,20 @@ export default {
       icon: getAppIcon(),
       adaptiveIcon: {
         foregroundImage: './assets/adaptive-icon.png',
-        backgroundColor: '#F5F6F8',
+        backgroundColor: '#F8E8E4',
       },
       permissions: ['android.permission.RECORD_AUDIO'],
     },
-    primaryColor: '#F5F6F8',
+    web: {
+      favicon: './assets/favicon.png',
+    },
+    primaryColor: '#9B3D46',
     plugins: [
       'vxrn/expo-plugin',
       'expo-web-browser',
       'expo-font',
+      'expo-audio',
+      'expo-image-picker',
       'react-native-bottom-tabs',
       [
         'expo-build-properties',
@@ -109,7 +115,7 @@ export default {
       [
         'expo-splash-screen',
         {
-          backgroundColor: '#F5F6F8',
+          backgroundColor: '#F8E8E4',
           image: './assets/logo.png',
           imageWidth: 80,
           imageHeight: 80,

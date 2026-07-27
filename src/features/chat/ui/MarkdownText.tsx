@@ -1,114 +1,99 @@
+import { EnrichedMarkdownText } from 'react-native-enriched-markdown'
 import { Linking } from 'react-native'
-import { SizableText, XStack, YStack } from 'tamagui'
+import { useTheme } from 'tamagui'
 
-import { BodyLargeText, HeadlineMediumText } from '~/interface/design/Typography'
+import { fontFamilies } from '~/tamagui/fontFamilies'
 
-import { parseMarkdownBlocks } from '../markdown'
+type MarkdownTextProps = { children: string; streaming?: boolean }
 
-type MarkdownTextProps = { children: string }
+export function MarkdownText({ children, streaming = false }: MarkdownTextProps) {
+  const theme = useTheme()
+  const color = theme.content?.val as string
+  const secondary = theme.contentSecondary?.val as string
+  const accent = theme.accent?.val as string
+  const surface = theme.surface1?.val as string
+  const outline = theme.outlineVariant?.val as string
 
-const inlinePattern = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g
-
-const renderInline = (content: string) =>
-  content
-    .split(inlinePattern)
-    .filter(Boolean)
-    .map((part, index) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return (
-          <SizableText key={index} fontFamily="$body" fontWeight="700">
-            {part.slice(2, -2)}
-          </SizableText>
-        )
-      }
-      if (part.startsWith('`') && part.endsWith('`')) {
-        return (
-          <SizableText key={index} fontFamily="$mono" bg="#E6E8EA" fontSize={16}>
-            {part.slice(1, -1)}
-          </SizableText>
-        )
-      }
-
-      const link = /^\[([^\]]+)]\((https?:\/\/[^)]+)\)$/.exec(part)
-      if (link) {
-        return (
-          <SizableText
-            role="link"
-            key={index}
-            color="#0051D5"
-            textDecorationLine="underline"
-            onPress={() => void Linking.openURL(link[2] || '')}
-          >
-            {link[1]}
-          </SizableText>
-        )
-      }
-      return part
-    })
-
-export function MarkdownText({ children }: MarkdownTextProps) {
-  let orderedIndex = 0
   return (
-    <YStack gap="$4">
-      {parseMarkdownBlocks(children).map((block, index) => {
-        if (block.type !== 'list-item') orderedIndex = 0
-
-        if (block.type === 'heading') {
-          return (
-            <HeadlineMediumText
-              key={index}
-              selectable
-              fontSize={block.level === 1 ? 21 : 16}
-              lineHeight={block.level === 1 ? 28 : 23}
-            >
-              {renderInline(block.content)}
-            </HeadlineMediumText>
-          )
-        }
-
-        if (block.type === 'code') {
-          return (
-            <YStack key={index} bg="#131B2E" rounded="$3" p="$4">
-              <SizableText
-                selectable
-                color="#E9EDF7"
-                fontFamily="$mono"
-                fontSize={14}
-                lineHeight={21}
-              >
-                {block.content}
-              </SizableText>
-            </YStack>
-          )
-        }
-
-        if (block.type === 'list-item') {
-          if (block.ordered) orderedIndex += 1
-          return (
-            <XStack key={index} items="flex-start" gap="$3">
-              <SizableText
-                color="#0051D5"
-                fontFamily="$body"
-                fontWeight="700"
-                fontSize={16}
-                lineHeight={28}
-                minW={20}
-              >
-                {block.ordered ? `${orderedIndex}.` : '✓'}
-              </SizableText>
-              <BodyLargeText selectable shrink={1}>
-                {renderInline(block.content)}
-              </BodyLargeText>
-            </XStack>
-          )
-        }
-
-        return (
-          <BodyLargeText key={index} selectable>
-            {renderInline(block.content)}
-          </BodyLargeText>
-        )
-      })}
-    </YStack>
+    <EnrichedMarkdownText
+      markdown={children}
+      flavor="github"
+      selectable
+      streamingAnimation={streaming}
+      streamingConfig={{ tableMode: 'hidden' }}
+      onLinkPress={(event) => void Linking.openURL(event.url)}
+      markdownStyle={{
+        paragraph: {
+          color,
+          fontFamily: fontFamilies.bricolage.regular,
+          fontSize: 16,
+          lineHeight: 23,
+          marginBottom: 10,
+        },
+        h1: {
+          color,
+          fontFamily: fontFamilies.bricolage.semiBold,
+          fontSize: 22,
+          lineHeight: 27,
+          marginBottom: 10,
+        },
+        h2: {
+          color,
+          fontFamily: fontFamilies.bricolage.semiBold,
+          fontSize: 19,
+          lineHeight: 24,
+          marginTop: 8,
+          marginBottom: 8,
+        },
+        h3: {
+          color,
+          fontFamily: fontFamilies.bricolage.semiBold,
+          fontSize: 17,
+          lineHeight: 22,
+          marginTop: 6,
+          marginBottom: 6,
+        },
+        list: {
+          color,
+          markerColor: accent,
+          fontFamily: fontFamilies.bricolage.regular,
+          fontSize: 16,
+          lineHeight: 23,
+          gapWidth: 8,
+          marginBottom: 8,
+        },
+        strong: {
+          color,
+          fontFamily: fontFamilies.bricolage.semiBold,
+          fontWeight: 'normal',
+        },
+        em: { color: secondary, fontFamily: fontFamilies.bricolage.regular },
+        link: {
+          color: accent,
+          fontFamily: fontFamilies.bricolage.medium,
+          underline: true,
+        },
+        blockquote: {
+          color: secondary,
+          fontFamily: fontFamilies.bricolage.regular,
+          borderColor: accent,
+          borderWidth: 2,
+          gapWidth: 12,
+          backgroundColor: surface,
+        },
+        codeBlock: {
+          color,
+          backgroundColor: surface,
+          borderColor: outline,
+          borderWidth: 1,
+          borderRadius: 10,
+          padding: 12,
+          fontSize: 13,
+          lineHeight: 19,
+        },
+        code: { color, backgroundColor: surface, borderColor: outline, fontSize: 14 },
+        thematicBreak: { color: outline, height: 1, marginTop: 12, marginBottom: 12 },
+      }}
+    />
   )
 }

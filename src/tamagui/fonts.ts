@@ -27,7 +27,7 @@ const body = createSystemFont({
 
 const heading = createSystemFont({
   font: {
-    family: fontFamilies.anybody.regular,
+    family: fontFamilies.bricolage.regular,
     weight: {
       1: '400',
       4: '500',
@@ -40,10 +40,10 @@ const heading = createSystemFont({
       true: '500',
     },
     face: {
-      400: { normal: fontFamilies.anybody.regular },
-      500: { normal: fontFamilies.anybody.medium },
-      600: { normal: fontFamilies.anybody.semiBold },
-      700: { normal: fontFamilies.anybody.bold },
+      400: { normal: fontFamilies.bricolage.regular },
+      500: { normal: fontFamilies.bricolage.medium },
+      600: { normal: fontFamilies.bricolage.semiBold },
+      700: { normal: fontFamilies.bricolage.bold },
     },
   },
   sizeLineHeight: (size) => Math.round(size * 1.2),
@@ -62,5 +62,14 @@ const mono = createSystemFont({
 export const fonts = {
   body,
   heading,
+  brand: createSystemFont({
+    font: {
+      family: fontFamilies.anybody.regular,
+      face: {
+        400: { normal: fontFamilies.anybody.regular },
+        600: { normal: fontFamilies.anybody.semiBold },
+      },
+    },
+  }),
   mono,
 }
