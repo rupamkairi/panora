@@ -2,14 +2,14 @@ import * as Clipboard from 'expo-clipboard'
 import { useRouter } from 'one'
 import { useEffect, useRef, useState } from 'react'
 import { KeyboardAvoidingView, Platform, ScrollView, Share } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { XStack, YStack, useTheme } from 'tamagui'
 
 import type { Conversation } from '../types'
 import { useChat } from '../useChat'
 import { STARTER_PROMPTS } from '../constants'
 import { LogoIcon } from '~/interface/app/LogoIcon'
-import { Button, IconButton, Popover, Text } from '~/interface/components'
+import { Button, FloatingMenu, IconButton, Popover, Text } from '~/interface/components'
 import {
   MenuIcon,
   MoreIcon,
@@ -40,6 +40,7 @@ const shareConversation = async (
 export function ChatScreen() {
   const router = useRouter()
   const theme = useTheme()
+  const insets = useSafeAreaInsets()
   const scrollRef = useRef<ScrollView>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -68,6 +69,7 @@ export function ChatScreen() {
       <ChatErrorBoundary>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={0}
           style={{ flex: 1 }}
         >
           <XStack
@@ -86,39 +88,12 @@ export function ChatScreen() {
             <Text flex={1} center size="sm" weight="semibold" numberOfLines={1} px="$2">
               {title}
             </Text>
-            <Popover
-              open={menuOpen}
-              onOpenChange={setMenuOpen}
-              placement="bottom-end"
-              adaptToSheet={false}
-              menu
-              content={
-                <YStack width={212}>
-                  <MenuButton
-                    label="Share conversation"
-                    icon="share"
-                    onPress={() => {
-                      setMenuOpen(false)
-                      shareCurrent()
-                    }}
-                  />
-                  <MenuButton
-                    label="Delete conversation"
-                    icon="delete"
-                    destructive
-                    disabled={!current}
-                    onPress={() => {
-                      if (current) chat.deleteConversation(current.id)
-                      setMenuOpen(false)
-                    }}
-                  />
-                </YStack>
-              }
+            <IconButton
+              aria-label="Conversation actions"
+              onPress={() => setMenuOpen((value) => !value)}
             >
-              <IconButton aria-label="Conversation actions">
-                <MoreIcon color={theme.content?.val as string} />
-              </IconButton>
-            </Popover>
+              <MoreIcon color={theme.content?.val as string} />
+            </IconButton>
           </XStack>
 
           <ScrollView
@@ -196,6 +171,35 @@ export function ChatScreen() {
           />
         </KeyboardAvoidingView>
       </ChatErrorBoundary>
+
+      <FloatingMenu
+        open={menuOpen}
+        onOpenChange={setMenuOpen}
+        title="Conversation actions"
+        description="Share or delete the current conversation"
+        top={insets.top + 56}
+        right={12}
+        width={212}
+      >
+        <MenuButton
+          label="Share conversation"
+          icon="share"
+          onPress={() => {
+            setMenuOpen(false)
+            shareCurrent()
+          }}
+        />
+        <MenuButton
+          label="Delete conversation"
+          icon="delete"
+          destructive
+          disabled={!current}
+          onPress={() => {
+            if (current) chat.deleteConversation(current.id)
+            setMenuOpen(false)
+          }}
+        />
+      </FloatingMenu>
 
       <ChatSidebar
         open={sidebarOpen}

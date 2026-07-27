@@ -12,16 +12,15 @@ if (
   throw new Error(`Invalid APP_VARIANT: ${APP_VARIANT}`)
 }
 
-const IS_DEV = APP_VARIANT === 'development'
-
 const getBundleId = () => {
-  // Preserve the established native identifiers for update compatibility.
+  // Each channel needs a stable, unique application id so Android can install
+  // development, preview, and production builds side-by-side.
   if (APP_VARIANT === 'development') {
-    return 'dev.tamagui.takeout.dev'
+    return 'com.panora.app.dev'
   } else if (APP_VARIANT === 'preview') {
-    return 'dev.tamagui.takeout.preview'
+    return 'com.panora.app.preview'
   }
-  return 'dev.tamagui.takeout'
+  return 'com.panora.app'
 }
 
 const getAppIcon = () => {
@@ -42,9 +41,8 @@ export default {
           return ''
       }
     })()}`,
-    slug: 'takeout',
-    owner: 'takeout',
-    scheme: 'takeout',
+    slug: 'panora',
+    scheme: 'panora',
     version,
     runtimeVersion: version, // must be set to use hot-updater "appVersion" update strategy
     platforms: ['ios', 'android', 'web'],
@@ -78,6 +76,7 @@ export default {
         foregroundImage: './assets/adaptive-icon.png',
         backgroundColor: '#F8E8E4',
       },
+      softwareKeyboardLayoutMode: 'resize',
       permissions: ['android.permission.RECORD_AUDIO'],
     },
     web: {
@@ -86,6 +85,7 @@ export default {
     primaryColor: '#9B3D46',
     plugins: [
       'vxrn/expo-plugin',
+      'expo-asset',
       'expo-web-browser',
       'expo-font',
       'expo-audio',
@@ -129,11 +129,6 @@ export default {
       //   },
       // ],
     ],
-    extra: {
-      eas: {
-        projectId: '9c6754b4-4688-4f51-8c28-55f0b018bc32',
-      },
-    },
   } satisfies ExpoConfig,
   experiments: {
     typedRoutes: true,

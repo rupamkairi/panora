@@ -1,4 +1,5 @@
 import { Sheet, SizableText, VisuallyHidden, YStack, type SheetProps } from 'tamagui'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   createContext,
   useCallback,
@@ -47,6 +48,7 @@ const AppSheetRoot = ({
   trigger,
   footer,
 }: AppSheetProps) => {
+  const { bottom } = useSafeAreaInsets()
   const [internalOpen, setInternalOpen] = useState(defaultOpen)
   const isControlled = controlledOpen !== undefined
   const isOpen = controlledOpen ?? internalOpen
@@ -106,7 +108,7 @@ const AppSheetRoot = ({
           </YStack>
           <Sheet.ScrollView flex={1}>{children}</Sheet.ScrollView>
           {footer ? (
-            <YStack px="$4" py="$3">
+            <YStack px="$4" pt="$3" pb={bottom + 16}>
               {footer}
             </YStack>
           ) : null}
@@ -134,11 +136,14 @@ const Body = ({ children }: { children: ReactNode }) => (
     {children}
   </YStack>
 )
-const Footer = ({ children }: { children: ReactNode }) => (
-  <YStack px="$4" py="$3">
-    {children}
-  </YStack>
-)
+const Footer = ({ children }: { children: ReactNode }) => {
+  const { bottom } = useSafeAreaInsets()
+  return (
+    <YStack px="$4" pt="$3" pb={bottom + 16}>
+      {children}
+    </YStack>
+  )
+}
 const Close = ({ children }: { children: ReactNode }) => {
   const { setOpen } = useAppSheet()
   return (

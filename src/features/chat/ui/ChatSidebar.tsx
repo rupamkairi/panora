@@ -1,5 +1,6 @@
 import { Dialog, ScrollView, XStack, YStack, useTheme } from 'tamagui'
 import { useState } from 'react'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import type { Conversation, ConversationGroup } from '../types'
 import { LogoIcon } from '~/interface/app/LogoIcon'
@@ -34,6 +35,7 @@ export function ChatSidebar({
   onSettings,
 }: ChatSidebarProps) {
   const theme = useTheme()
+  const insets = useSafeAreaInsets()
   return (
     <Dialog modal open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -56,17 +58,15 @@ export function ChatSidebar({
           gap={0}
           bg="$surface"
           borderWidth={0}
-          borderRightWidth={1}
-          borderRightColor="$outlineVariant"
           rounded={0}
-          transition="quick"
-          animateOnly={['opacity', 'transform']}
-          x={0}
-          opacity={1}
-          enterStyle={{ x: -340, opacity: 0.8 }}
-          exitStyle={{ x: -340, opacity: 0.8 }}
         >
-          <XStack px="$4" pt="$5" pb="$3" items="center" justify="space-between">
+          <XStack
+            px="$4"
+            pt={insets.top + 16}
+            pb="$3"
+            items="center"
+            justify="space-between"
+          >
             <XStack items="center" gap="$2">
               <LogoIcon size={42} />
               <YStack>
@@ -134,7 +134,7 @@ export function ChatSidebar({
               ) : null}
             </YStack>
           </ScrollView>
-          <YStack borderTopWidth={1} borderTopColor="$outlineVariant" px="$3" py="$3">
+          <YStack px="$3" pt="$3" pb={insets.bottom + 12}>
             <Button variant="ghost" justify="flex-start" onPress={onSettings}>
               Settings
             </Button>

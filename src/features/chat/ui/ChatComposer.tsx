@@ -5,11 +5,14 @@ import {
   Animated,
   Easing,
   Text as NativeText,
+  useWindowDimensions,
   type LayoutChangeEvent,
+  type LayoutRectangle,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useEffect, useRef } from 'react'
 
-import { Button, IconButton, Popover, Text, TextArea } from '~/interface/components'
+import { Button, FloatingMenu, IconButton, Text, TextArea } from '~/interface/components'
 import {
   CloseIcon,
   FileIcon,
@@ -46,10 +49,18 @@ export function ChatComposer({
   onRemoveContextItem,
 }: ChatComposerProps) {
   const theme = useTheme()
+  const insets = useSafeAreaInsets()
+  const { height: windowHeight } = useWindowDimensions()
   const [plusOpen, setPlusOpen] = useState(false)
   const [uploadOpen, setUploadOpen] = useState(false)
   const [reportsOpen, setReportsOpen] = useState(false)
   const [composerHeight, setComposerHeight] = useState(48)
+  const [composerFrame, setComposerFrame] = useState<LayoutRectangle | null>(null)
+  const [actionRowFrame, setActionRowFrame] = useState<LayoutRectangle | null>(null)
+  const [contextActionsFrame, setContextActionsFrame] = useState<LayoutRectangle | null>(
+    null,
+  )
+  const [plusFrame, setPlusFrame] = useState<LayoutRectangle | null>(null)
   const [voice, setVoice] = useState<VoiceState>({ status: 'idle' })
   const canSend = draft.trim().length > 0 && !isSending && voice.status === 'idle'
 
@@ -87,13 +98,24 @@ export function ChatComposer({
         : `${contextItems.length}/5 context items`,
     [contextItems.length],
   )
+  const menuBottom =
+    composerFrame === null || actionRowFrame === null || plusFrame === null
+      ? insets.bottom + 144
+      : Math.max(
+          insets.bottom + 12,
+          windowHeight -
+            (insets.top + composerFrame.y + actionRowFrame.y + plusFrame.y) +
+            8,
+        )
+  const menuLeft =
+    composerFrame === null || contextActionsFrame === null || plusFrame === null
+      ? 16
+      : composerFrame.x + contextActionsFrame.x + plusFrame.x
 
   return (
     <>
       <YStack
         bg="$surface"
-        borderWidth={1}
-        borderColor={voice.status === 'recording' ? '$accent' : '$outlineVariant'}
         rounded="$6"
         mx="$3"
         mb="$2"
@@ -102,6 +124,7 @@ export function ChatComposer({
         shadowRadius={18}
         shadowOffset={{ width: 0, height: 6 }}
         overflow="hidden"
+        onLayout={(event) => setComposerFrame(event.nativeEvent.layout)}
       >
         {contextItems.length > 0 ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -126,6 +149,7 @@ export function ChatComposer({
           />
         ) : (
           <TextArea
+            composer
             aria-label="Message Panora"
             value={draft}
             onChangeText={onDraftChange}
@@ -135,9 +159,6 @@ export function ChatComposer({
             px="$4"
             pt="$3"
             pb="$2"
-            borderWidth={0}
-            bg="$transparent"
-            rounded={0}
             multiline
             scrollEnabled
             onContentSizeChange={(event) =>
@@ -148,43 +169,29 @@ export function ChatComposer({
           />
         )}
 
-        <XStack minH={52} px="$2" pb="$2" items="center" justify="space-between">
-          <XStack items="center" gap="$1">
-            <Popover
-              open={plusOpen}
-              onOpenChange={setPlusOpen}
-              placement="top-start"
-              adaptToSheet={false}
-              menu
-              content={
-                <YStack width={220} gap="$1">
-                  <MenuAction
-                    label="Upload"
-                    detail="Files, photos, or camera"
-                    onPress={() => {
-                      setPlusOpen(false)
-                      setUploadOpen(true)
-                    }}
-                  />
-                  <MenuAction
-                    label="Choose reports"
-                    detail="Search the sample library"
-                    onPress={() => {
-                      setPlusOpen(false)
-                      setReportsOpen(true)
-                    }}
-                  />
-                </YStack>
-              }
-            >
+        <XStack
+          minH={52}
+          px="$2"
+          pb="$2"
+          items="center"
+          justify="space-between"
+          onLayout={(event) => setActionRowFrame(event.nativeEvent.layout)}
+        >
+          <XStack
+            items="center"
+            gap="$1"
+            onLayout={(event) => setContextActionsFrame(event.nativeEvent.layout)}
+          >
+            <YStack onLayout={(event) => setPlusFrame(event.nativeEvent.layout)}>
               <IconButton
                 aria-label="Add context"
                 variant="outlined"
                 disabled={contextItems.length >= 5}
+                onPress={() => setPlusOpen((value) => !value)}
               >
                 <PlusIcon color={theme.content?.val as string} />
               </IconButton>
-            </Popover>
+            </YStack>
             <Text size="xs" tone="secondary" ml="$1">
               {voice.status === 'transcribing' ? 'Transcribing…' : contextLabel}
             </Text>
@@ -239,6 +246,32 @@ export function ChatComposer({
         ) : null}
       </YStack>
 
+      <FloatingMenu
+        open={plusOpen}
+        onOpenChange={setPlusOpen}
+        title="Add chat context"
+        description="Upload a file or choose reports for this conversation"
+        bottom={menuBottom}
+        left={menuLeft}
+      >
+        <MenuAction
+          label="Upload"
+          detail="Files, photos, or camera"
+          onPress={() => {
+            setPlusOpen(false)
+            setUploadOpen(true)
+          }}
+        />
+        <MenuAction
+          label="Choose reports"
+          detail="Search the sample library"
+          onPress={() => {
+            setPlusOpen(false)
+            setReportsOpen(true)
+          }}
+        />
+      </FloatingMenu>
+
       <ContextSheets
         uploadOpen={uploadOpen}
         onUploadOpenChange={setUploadOpen}
@@ -264,10 +297,12 @@ function MenuAction({
     <Button
       unstyled
       width="100%"
-      minH={58}
+      height={70}
       px="$3"
+      py="$2"
       rounded="$3"
-      justify="flex-start"
+      justify="center"
+      items="flex-start"
       borderWidth={0}
       bg="$transparent"
       hoverStyle={{ bg: '$surface1' }}
@@ -275,7 +310,7 @@ function MenuAction({
       focusVisibleStyle={{ outlineWidth: 0, bg: '$surface1' }}
       onPress={onPress}
     >
-      <YStack items="flex-start">
+      <YStack items="flex-start" gap="$1">
         <Text weight="semibold">{label}</Text>
         <Text size="xs" tone="secondary">
           {detail}

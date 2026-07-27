@@ -22,4 +22,33 @@ export const TextArea = styled(TamaguiTextArea, {
     outlineColor: colors.accent,
     outlineOffset: -1,
   },
+  variants: {
+    composer: {
+      true: {
+        bg: '$transparent',
+        borderWidth: 0,
+        borderColor: '$transparent',
+        rounded: 0,
+        hoverStyle: {
+          bg: '$transparent',
+          borderWidth: 0,
+          borderColor: '$transparent',
+        },
+        focusStyle: {
+          bg: '$transparent',
+          borderWidth: 0,
+          borderColor: '$transparent',
+          outlineWidth: 0,
+          outlineColor: '$transparent',
+        },
+        focusVisibleStyle: {
+          bg: '$transparent',
+          borderWidth: 0,
+          borderColor: '$transparent',
+          outlineWidth: 0,
+          outlineColor: '$transparent',
+        },
+      },
+    },
+  } as const,
 })

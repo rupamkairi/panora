@@ -1,35 +1,22 @@
 ---
 name: Panora
 description: A warm, mobile-only AI chat for learning from reports.
-defaultTheme: saffron
+defaultTheme: rosewood
 themes:
-  saffron:
-    canvas: "#F7EFD9"
-    surface: "#FFF8E8"
-    tonal-soft: "#F3E6C5"
-    tonal-medium: "#EBD8AA"
-    tonal-strong: "#DFC58A"
-    ink: "#2C1D12"
-    ink-muted: "#6C5845"
-    outline: "#A58B68"
-    outline-subtle: "#D7C5A2"
-    accent: "#D99100"
-    accent-pressed: "#B97800"
-    accent-soft: "#F2C45F"
-  apricot:
-    canvas: "#FBE9DC"
-    surface: "#FFF5ED"
-    tonal-soft: "#F5D7C3"
-    ink: "#321A2E"
-    ink-muted: "#74586D"
-    accent: "#8C3F7A"
   rosewood:
     canvas: "#F8E8E4"
     surface: "#FFF4F1"
     tonal-soft: "#F0D2CE"
+    tonal-medium: "#E8C0BC"
+    tonal-strong: "#DDA8A5"
+    tonal-deep: "#CF9290"
     ink: "#321B1D"
     ink-muted: "#76575A"
+    outline: "#9A7175"
+    outline-subtle: "#DDBDB9"
     accent: "#9B3D46"
+    accent-pressed: "#7D2E36"
+    accent-soft: "#E8A5AB"
 typography:
   primary: "Bricolage Grotesque"
   brand: "Anybody"
@@ -72,21 +59,10 @@ single Settings screen.
 
 Panora is light-only. Never read or follow the system dark appearance.
 
-### Saffron & Espresso
-
-Default theme. Warm parchment creates the page, a cream surface lifts controls,
-espresso carries text, and saffron identifies active controls. Saffron must not
-be used as decorative fill across large regions.
-
-### Apricot & Aubergine
-
-A softer apricot canvas paired with aubergine interaction color. It keeps the
-same semantic roles and contrast hierarchy as the default.
-
 ### Rosewood & Blush
 
-A grounded blush canvas with rosewood interaction color. It is warm without
-becoming sentimental or ornamental.
+A grounded blush canvas with rosewood interaction color. This is Panora's only
+theme: it is warm without becoming sentimental or ornamental.
 
 All feature code uses semantic theme roles:
 `background`, `surface`, `surface1–4`, `content`, `contentSecondary`, `accent`,
@@ -131,7 +107,7 @@ Share, and Delete without adding permanent visual noise.
 
 ### Composer
 
-The composer floats 12px from the phone edge with a cream surface, one subtle
+The composer floats 12px from the phone edge with a cream surface, no enclosing
 outline, 24px radius, and a restrained ambient shadow. The text field expands
 from one to five visible lines before scrolling.
 
@@ -152,6 +128,9 @@ Upload uses a compact bottom sheet with Files, Photos, and Camera. Choose report
 uses a taller bottom sheet with search, sample-data disclosure, checkbox rows,
 selection count, and a single confirmation action. Every sheet has a programmatic
 title and description, dismissal behavior, and focus restoration.
+
+Every bottom-fixed action reserves the device safe-area inset plus a 16px visual
+gutter. Primary actions never sit against the gesture area or screen edge.
 
 ## Interaction States
 

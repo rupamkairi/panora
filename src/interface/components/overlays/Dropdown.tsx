@@ -1,5 +1,6 @@
 import { Adapt, Popover, ScrollView, Sheet, SizableText, XStack, YStack } from 'tamagui'
 import { useCallback, useState, type ReactElement } from 'react'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Button } from '../actions/Button'
 import { colors } from '../colors'
@@ -31,6 +32,7 @@ export const Dropdown = <T extends string>({
   onOpenChange,
   label,
 }: DropdownProps<T>) => {
+  const { bottom } = useSafeAreaInsets()
   const [internalOpen, setInternalOpen] = useState(defaultOpen)
   const [internalValue, setInternalValue] = useState<T | undefined>(defaultValue)
   const isControlled = controlledOpen !== undefined
@@ -103,7 +105,7 @@ export const Dropdown = <T extends string>({
       <Adapt when="max-md" platform="touch">
         <Sheet modal dismissOnSnapToBottom snapPoints={[50, 85]}>
           <Sheet.Overlay />
-          <Sheet.Frame bg={colors.surface}>
+          <Sheet.Frame bg={colors.surface} pb={bottom + 16}>
             <Sheet.Handle />
             <YStack px="$4" pt="$3">
               <SizableText fontFamily="$heading" fontSize={18} fontWeight="600">

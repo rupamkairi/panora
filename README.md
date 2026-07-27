@@ -170,10 +170,26 @@ Requires macOS, Xcode 16+, and iOS 17.0+ deployment target.
 ### Android
 
 ```bash
-bun android      # run in emulator
+# One-time: create an Android Studio AVD (Device Manager).
+# The app requires JDK 17 and Android SDK Platform 36.
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH"
+
+# Start everything and keep this command running for Fast Refresh.
+bun android
 ```
 
-Requires Android Studio, JDK 17+, and Android SDK 34+.
+`bun android` starts or reuses an emulator, starts or reuses Metro, performs an
+incremental native build, installs **Panora (Dev)**, configures ADB port
+reversal, and opens the custom client at `localhost:8081`. It does not use Expo
+Go or depend on the machine's LAN IP. Use `bun run android:open` only when you
+want to reconnect an already-installed client without rebuilding. Press
+`Ctrl+C` to stop Metro; the emulator remains available for the next run.
+
+For a shareable APK, use `bun run android:apk`; use `bun run
+android:production` for the Play Store AAB.
+
+Requires Android Studio, JDK 17, and Android SDK Platform 36.
 
 ## Adding Features
 

@@ -5,36 +5,6 @@ import { animationsRoot } from './animationsRoot'
 import { fonts } from './fonts'
 
 export const panoraPalettes = {
-  saffron: {
-    background: '#F7EFD9',
-    surface: '#FFF8E8',
-    surface1: '#F3E6C5',
-    surface2: '#EBD8AA',
-    surface3: '#DFC58A',
-    surface4: '#D4B86F',
-    content: '#2C1D12',
-    contentSecondary: '#6C5845',
-    outline: '#A58B68',
-    outlineVariant: '#D7C5A2',
-    accent: '#D99100',
-    accentHover: '#B97800',
-    accentContainer: '#F2C45F',
-  },
-  apricot: {
-    background: '#FBE9DC',
-    surface: '#FFF5ED',
-    surface1: '#F5D7C3',
-    surface2: '#EDC2A7',
-    surface3: '#DFA98A',
-    surface4: '#D49775',
-    content: '#321A2E',
-    contentSecondary: '#74586D',
-    outline: '#A77C98',
-    outlineVariant: '#DEC0D4',
-    accent: '#8C3F7A',
-    accentHover: '#6F2F60',
-    accentContainer: '#E6B5D5',
-  },
   rosewood: {
     background: '#F8E8E4',
     surface: '#FFF4F1',
@@ -82,7 +52,7 @@ export const config = createTamagui({
   fonts,
   tokens: {
     ...defaultConfig.tokens,
-    color: { ...panoraPalettes.saffron, ...semantics },
+    color: { ...panoraPalettes.rosewood, ...semantics },
     size: {
       ...defaultConfig.tokens.size,
       controlSm: 44,
@@ -103,15 +73,12 @@ export const config = createTamagui({
     },
   },
   themes: {
-    saffron: createTheme(panoraPalettes.saffron),
-    apricot: createTheme(panoraPalettes.apricot),
     rosewood: createTheme(panoraPalettes.rosewood),
-    light: createTheme(panoraPalettes.saffron),
+    light: createTheme(panoraPalettes.rosewood),
   },
 })
 
 export type Conf = typeof config
-export type PanoraThemeName = 'saffron' | 'apricot' | 'rosewood'
 
 declare module 'tamagui' {
   interface TamaguiCustomConfig extends Conf {}

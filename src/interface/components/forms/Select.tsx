@@ -1,4 +1,5 @@
 import { Adapt, Select as TamaguiSelect, Sheet } from 'tamagui'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../colors'
 import type { DropdownItem } from '../types'
 
@@ -19,6 +20,7 @@ export const Select = <T extends string>({
   disabled?: boolean
   invalid?: boolean
 }) => {
+  const { bottom } = useSafeAreaInsets()
   return (
     <TamaguiSelect
       value={controlledValue}
@@ -36,7 +38,7 @@ export const Select = <T extends string>({
 
       <Adapt when="sm" platform="touch">
         <Sheet modal dismissOnSnapToBottom snapPointsMode="fit">
-          <Sheet.Frame>
+          <Sheet.Frame pb={bottom + 16}>
             <Sheet.ScrollView>
               <Adapt.Contents />
             </Sheet.ScrollView>

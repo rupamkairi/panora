@@ -25,7 +25,7 @@ understanding without first learning a document-workspace interface.
 - The report catalog is typed sample data until a backend contract exists.
 - File selection is local context, not successful ingestion.
 - Voice transcription uses a typed mock adapter until a backend exists.
-- Conversations, drafts, feedback, pinned state, context, and theme persist locally.
+- Conversations, drafts, feedback, pinned state, and context persist locally.
 - The chat endpoint supports cancellable streaming responses.
 
 ## Product Principles
@@ -45,7 +45,7 @@ understanding without first learning a document-workspace interface.
 - Bricolage Grotesque carries nearly all reading and interface text.
 - Anybody is reserved for the Panora wordmark and rare brand moments.
 - The product is light-only.
-- Warm editorial palettes replace the discarded cool-blue report workspace.
+- Rosewood & Blush replaces the discarded cool-blue report workspace.
 
 ## Accessibility
 

@@ -1,5 +1,6 @@
 import { Adapt, Popover, Sheet, styled, type PopoverProps } from 'tamagui'
 import { useCallback, useState, type ReactElement, type ReactNode } from 'react'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '../colors'
 
@@ -50,6 +51,7 @@ export const PopoverComponent = ({
   adaptToSheet = true,
   menu = false,
 }: PopoverComponentProps) => {
+  const { bottom } = useSafeAreaInsets()
   const [internalOpen, setInternalOpen] = useState(defaultOpen)
   const isControlled = controlledOpen !== undefined
   const isOpen = controlledOpen ?? internalOpen
@@ -68,7 +70,7 @@ export const PopoverComponent = ({
         <Adapt when="max-md" platform="touch">
           <Sheet modal dismissOnSnapToBottom snapPoints={[50]}>
             <Sheet.Overlay />
-            <Sheet.Frame p="$4" bg={colors.surface}>
+            <Sheet.Frame p="$4" pb={bottom + 16} bg={colors.surface}>
               <Sheet.Handle />
               <Adapt.Contents />
             </Sheet.Frame>

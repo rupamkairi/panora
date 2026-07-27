@@ -29,7 +29,7 @@ export function Layout() {
         />
         <meta
           name="panora-design-world"
-          content="Warm light themes, Bricolage Grotesque throughout, compact open prose, and tactile native controls."
+          content="Rosewood & Blush, Bricolage Grotesque throughout, compact open prose, and tactile native controls."
         />
         <meta
           name="panora-design-story"

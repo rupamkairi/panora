@@ -53,7 +53,10 @@ export default {
       },
 
       native: {
-        bundler: 'rolldown',
+        // Metro applies Expo's Hermes-compatible Babel transforms. Rolldown
+        // leaves async generators in the Android bundle, which Hermes cannot
+        // compile.
+        bundler: 'metro',
       },
 
       router: {
