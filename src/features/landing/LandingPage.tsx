@@ -1,4 +1,3 @@
-import { router } from 'one'
 import { XStack, YStack, styled, View } from 'tamagui'
 
 import { Link } from '~/interface/app/Link'
@@ -6,8 +5,6 @@ import { Logo } from '~/interface/app/Logo'
 import { Button, Container, Heading, Text } from '~/interface/components'
 
 const PRODUCT_ROUTE = '/chat' as const
-
-const goToChat = () => router.push(PRODUCT_ROUTE)
 
 const sourceDetails = [
   { label: 'Report', value: 'Quarterly performance review' },
@@ -48,7 +45,11 @@ export function LandingPage() {
           <XStack minH={72} items="center" justify="space-between" gap="$4">
             <Logo height={30} />
 
-            <Button variant="primary" uiSize="md" onPress={goToChat}>
+            <Button
+              render={<Link href={PRODUCT_ROUTE} />}
+              variant="primary"
+              uiSize="md"
+            >
               Open Panora
             </Button>
           </XStack>
@@ -78,7 +79,11 @@ export function LandingPage() {
                   findings, compare viewpoints, and notice what deserves a closer look.
                 </Text>
                 <XStack items="center" gap="$4" flexWrap="wrap">
-                  <Button variant="primary" uiSize="lg" onPress={goToChat}>
+                  <Button
+                    render={<Link href={PRODUCT_ROUTE} />}
+                    variant="primary"
+                    uiSize="lg"
+                  >
                     Start a conversation
                   </Button>
                   <Text size="sm" tone="secondary">
@@ -217,11 +222,11 @@ export function LandingPage() {
                 it says, what it implies, and what still needs verification.
               </Text>
               <Button
+                render={<Link href={PRODUCT_ROUTE} />}
                 variant="secondary"
                 uiSize="lg"
                 hoverStyle={{ opacity: 0.9 }}
                 pressStyle={{ opacity: 0.82, scale: 0.98 }}
-                onPress={goToChat}
               >
                 Open Panora
               </Button>

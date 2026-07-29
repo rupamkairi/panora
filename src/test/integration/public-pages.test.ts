@@ -24,7 +24,7 @@ test('web root shows the public landing page and routes into the product', async
   expect(geometry.right).toBe(geometry.viewportRight)
   expect(geometry.documentScrollWidth).toBeLessThanOrEqual(geometry.viewportRight)
 
-  await page.getByRole('button', { name: 'Start a conversation' }).click()
+  await page.getByRole('link', { name: 'Start a conversation' }).click()
   await expect(page).toHaveURL(/\/chat$/)
   await expect(page.getByLabel('Message Panora')).toBeVisible()
 })
@@ -39,7 +39,7 @@ test('landing page exposes keyboard-visible navigation and calls to action', asy
   await expect(privacyLink).toBeFocused()
   await expect(privacyLink).not.toHaveCSS('outline-style', 'none')
 
-  const primaryCta = page.getByRole('button', { name: 'Start a conversation' })
+  const primaryCta = page.getByRole('link', { name: 'Start a conversation' })
   await primaryCta.focus()
   await expect(primaryCta).toBeFocused()
   await expect(primaryCta).not.toHaveCSS('outline-style', 'none')
