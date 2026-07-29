@@ -7,7 +7,7 @@ import { Button, Container, Heading, Text } from '~/interface/components'
 
 const PRODUCT_ROUTE = '/chat' as const
 
-const goToChat = () => router.navigate(PRODUCT_ROUTE)
+const goToChat = () => router.push(PRODUCT_ROUTE)
 
 const sourceDetails = [
   { label: 'Report', value: 'Quarterly performance review' },
