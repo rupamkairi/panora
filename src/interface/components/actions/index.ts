@@ -1,5 +1,6 @@
 export { Pressable } from './Pressable'
 export { Button } from './Button'
+export { ButtonLink } from './ButtonLink'
 export { IconButton } from './IconButton'
 export { ButtonGroup } from './ButtonGroup'
 export { Link } from './Link'

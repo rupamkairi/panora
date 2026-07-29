@@ -2,7 +2,7 @@ import { XStack, YStack, styled, View } from 'tamagui'
 
 import { Link } from '~/interface/app/Link'
 import { Logo } from '~/interface/app/Logo'
-import { Button, Container, Heading, Text } from '~/interface/components'
+import { ButtonLink, Container, Heading, Text } from '~/interface/components'
 
 const PRODUCT_ROUTE = '/chat' as const
 const productAnchorProps = { href: PRODUCT_ROUTE } as const
@@ -46,14 +46,13 @@ export function LandingPage() {
           <XStack minH={72} items="center" justify="space-between" gap="$4">
             <Logo height={30} />
 
-            <Button
-              render="a"
+            <ButtonLink
               {...productAnchorProps}
               variant="primary"
               uiSize="md"
             >
               Open Panora
-            </Button>
+            </ButtonLink>
           </XStack>
         </Container>
       </Masthead>
@@ -81,14 +80,13 @@ export function LandingPage() {
                   findings, compare viewpoints, and notice what deserves a closer look.
                 </Text>
                 <XStack items="center" gap="$4" flexWrap="wrap">
-                  <Button
-                    render="a"
+                  <ButtonLink
                     {...productAnchorProps}
                     variant="primary"
                     uiSize="lg"
                   >
                     Start a conversation
-                  </Button>
+                  </ButtonLink>
                   <Text size="sm" tone="secondary">
                     No sign-up required to start
                   </Text>
@@ -224,8 +222,7 @@ export function LandingPage() {
                 Start with the report in front of you. Panora helps you work through what
                 it says, what it implies, and what still needs verification.
               </Text>
-              <Button
-                render="a"
+              <ButtonLink
                 {...productAnchorProps}
                 variant="secondary"
                 uiSize="lg"
@@ -233,7 +230,7 @@ export function LandingPage() {
                 pressStyle={{ opacity: 0.82, scale: 0.98 }}
               >
                 Open Panora
-              </Button>
+              </ButtonLink>
             </YStack>
           </Container>
         </ClosingSection>
