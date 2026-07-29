@@ -3,7 +3,6 @@ import { Configuration } from 'tamagui'
 
 import { useAuth } from '~/features/auth/client/authClient'
 import { PlatformSpecificRootProvider } from '~/interface/platform/PlatformSpecificRootProvider'
-import { ProvideZero } from '~/zero/client'
 
 export function AuthLayout() {
   const { state } = useAuth()
@@ -16,19 +15,17 @@ export function AuthLayout() {
 
   return (
     <Configuration disableSSR>
-      <ProvideZero>
-        <PlatformSpecificRootProvider>
-          {process.env.VITE_PLATFORM === 'web' ? (
-            <Slot />
-          ) : (
-            <Stack screenOptions={{ headerShown: false }} initialRouteName="login">
-              <Stack.Screen name="login" />
-              <Stack.Screen name="login/password" />
-              <Stack.Screen name="signup/[method]" />
-            </Stack>
-          )}
-        </PlatformSpecificRootProvider>
-      </ProvideZero>
+      <PlatformSpecificRootProvider>
+        {process.env.VITE_PLATFORM === 'web' ? (
+          <Slot />
+        ) : (
+          <Stack screenOptions={{ headerShown: false }} initialRouteName="login">
+            <Stack.Screen name="login" />
+            <Stack.Screen name="login/password" />
+            <Stack.Screen name="signup/[method]" />
+          </Stack>
+        )}
+      </PlatformSpecificRootProvider>
     </Configuration>
   )
 }

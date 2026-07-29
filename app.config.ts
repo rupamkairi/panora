@@ -16,11 +16,11 @@ const getBundleId = () => {
   // Each channel needs a stable, unique application id so Android can install
   // development, preview, and production builds side-by-side.
   if (APP_VARIANT === 'development') {
-    return 'com.panora.app.dev'
+    return 'dev.rupamkairi.panora.dev'
   } else if (APP_VARIANT === 'preview') {
-    return 'com.panora.app.preview'
+    return 'dev.rupamkairi.panora.preview'
   }
-  return 'com.panora.app'
+  return 'dev.rupamkairi.panora'
 }
 
 const getAppIcon = () => {
