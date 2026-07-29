@@ -38,6 +38,9 @@ dist
 .env.backup
 .env.ios
 
+# Android release signing material (never commit or share these files)
+.secrets/android/
+
 .expo
 
 # test output
