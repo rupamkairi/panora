@@ -5,6 +5,7 @@ import { Logo } from '~/interface/app/Logo'
 import { Button, Container, Heading, Text } from '~/interface/components'
 
 const PRODUCT_ROUTE = '/chat' as const
+const productAnchorProps = { href: PRODUCT_ROUTE } as const
 
 const sourceDetails = [
   { label: 'Report', value: 'Quarterly performance review' },
@@ -46,7 +47,8 @@ export function LandingPage() {
             <Logo height={30} />
 
             <Button
-              render={<Link href={PRODUCT_ROUTE} />}
+              render="a"
+              {...productAnchorProps}
               variant="primary"
               uiSize="md"
             >
@@ -80,7 +82,8 @@ export function LandingPage() {
                 </Text>
                 <XStack items="center" gap="$4" flexWrap="wrap">
                   <Button
-                    render={<Link href={PRODUCT_ROUTE} />}
+                    render="a"
+                    {...productAnchorProps}
                     variant="primary"
                     uiSize="lg"
                   >
@@ -222,7 +225,8 @@ export function LandingPage() {
                 it says, what it implies, and what still needs verification.
               </Text>
               <Button
-                render={<Link href={PRODUCT_ROUTE} />}
+                render="a"
+                {...productAnchorProps}
                 variant="secondary"
                 uiSize="lg"
                 hoverStyle={{ opacity: 0.9 }}
