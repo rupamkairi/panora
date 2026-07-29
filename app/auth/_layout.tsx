@@ -1,6 +1,7 @@
 import { Redirect, Slot, Stack, usePathname } from 'one'
-import { Configuration } from 'tamagui'
+import { Configuration, isWeb } from 'tamagui'
 
+import { getProductRoute } from '~/constants/navigation'
 import { useAuth } from '~/features/auth/client/authClient'
 import { PlatformSpecificRootProvider } from '~/interface/platform/PlatformSpecificRootProvider'
 
@@ -10,13 +11,13 @@ export function AuthLayout() {
 
   if (state === 'loading') return null
   if (state === 'logged-in' && pathname.startsWith('/auth')) {
-    return <Redirect href="/" />
+    return <Redirect href={getProductRoute(isWeb)} />
   }
 
   return (
     <Configuration disableSSR>
       <PlatformSpecificRootProvider>
-        {process.env.VITE_PLATFORM === 'web' ? (
+        {isWeb ? (
           <Slot />
         ) : (
           <Stack screenOptions={{ headerShown: false }} initialRouteName="login">

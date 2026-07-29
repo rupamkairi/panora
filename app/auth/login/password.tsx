@@ -2,8 +2,9 @@ import { router, useParams } from 'one'
 import { useState } from 'react'
 import { Keyboard } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { YStack } from 'tamagui'
+import { isWeb, YStack } from 'tamagui'
 
+import { getProductRoute } from '~/constants/navigation'
 import { passwordLogin } from '~/features/auth/client/passwordLogin'
 import { Button, Heading, Input, Page, Text } from '~/interface/components'
 import { showError } from '~/interface/dialogs/actions'
@@ -33,7 +34,7 @@ export const PasswordPage = () => {
         showError(error)
         return
       }
-      router.replace('/')
+      router.replace(getProductRoute(isWeb))
     } catch (err) {
       console.error(err)
     } finally {

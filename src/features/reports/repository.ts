@@ -106,7 +106,8 @@ export const sampleReports: ReportSummary[] = [
     keyThemes: [
       {
         title: 'Progress differs by system',
-        description: 'Some transitions are accelerating while others remain far off track.',
+        description:
+          'Some transitions are accelerating while others remain far off track.',
       },
       {
         title: 'Infrastructure shapes pace',
@@ -126,7 +127,8 @@ export class MockReportRepository implements ReportRepository {
   async list(query: ReportQuery = {}) {
     const search = query.search?.trim().toLowerCase()
     return sampleReports.filter((report) => {
-      const matchesTopic = !query.topic || query.topic === 'All' || report.topic === query.topic
+      const matchesTopic =
+        !query.topic || query.topic === 'All' || report.topic === query.topic
       const matchesSearch =
         !search ||
         `${report.title} ${report.publisher} ${report.topic}`

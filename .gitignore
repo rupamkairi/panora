@@ -19,6 +19,7 @@ dist
 .ultra.cache.json
 *.tsbuildinfo
 
+.vercel
 .build
 .tamagui
 

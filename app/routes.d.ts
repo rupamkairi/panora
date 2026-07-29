@@ -12,6 +12,9 @@ declare module 'one' {
         | `/auth`
         | `/auth/login`
         | `/auth/login/password`
+        | `/chat`
+        | `/legal/privacy`
+        | `/legal/terms`
         | `/settings`
         | `/ui`
       DynamicRoutes: `/auth/signup/${OneRouter.SingleRoutePart<T>}`

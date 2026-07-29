@@ -76,7 +76,7 @@ test('login page does not redirect infinitely', async ({ page }) => {
   expect(page.url()).toContain('/auth/login')
 })
 
-test('successful password login returns to the Panora landing page', async ({ page }) => {
+test('successful password login returns to the Panora chat product', async ({ page }) => {
   await page.goto('/auth/login')
   await page.getByText('Continue with Email').click()
   await page.getByTestId('email-input').fill('demo@takeout.tamagui.dev')
@@ -85,6 +85,6 @@ test('successful password login returns to the Panora landing page', async ({ pa
   await page.getByTestId('password-input').fill('demopassword123')
   await page.getByTestId('submit-password-button').click()
 
-  await expect(page).toHaveURL('http://localhost:8081/')
+  await expect(page).toHaveURL('http://localhost:8081/chat')
   await expect(page.getByText('What would you like to understand?')).toBeVisible()
 })

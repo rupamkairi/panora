@@ -73,7 +73,11 @@ export const FilePicker = ({
   const validateFile = useCallback(
     (file: PickedFile, allFiles: PickedFile[]): FileValidationError | null => {
       if (maxFileSize && file.size > maxFileSize) {
-        return { file, reason: 'size', message: `${file.name} exceeds max size of ${formatSize(maxFileSize)}` }
+        return {
+          file,
+          reason: 'size',
+          message: `${file.name} exceeds max size of ${formatSize(maxFileSize)}`,
+        }
       }
       if (maxFiles && allFiles.length > maxFiles) {
         return { file, reason: 'count', message: `Maximum ${maxFiles} files allowed` }
@@ -81,7 +85,11 @@ export const FilePicker = ({
       if (maxTotalSize) {
         const totalSize = allFiles.reduce((sum, f) => sum + f.size, 0)
         if (totalSize > maxTotalSize) {
-          return { file, reason: 'size', message: `Total size exceeds ${formatSize(maxTotalSize)}` }
+          return {
+            file,
+            reason: 'size',
+            message: `Total size exceeds ${formatSize(maxTotalSize)}`,
+          }
         }
       }
       return null
@@ -130,7 +138,18 @@ export const FilePicker = ({
       const error = err instanceof Error ? err : new Error(String(err))
       onError?.(error)
     }
-  }, [disabled, loading, accept, multiple, copyToCache, currentFiles, validateFile, setFiles, onRejected, onError])
+  }, [
+    disabled,
+    loading,
+    accept,
+    multiple,
+    copyToCache,
+    currentFiles,
+    validateFile,
+    setFiles,
+    onRejected,
+    onError,
+  ])
 
   const removeFile = useCallback(
     (index: number) => setFiles(currentFiles.filter((_, i) => i !== index)),
@@ -146,11 +165,38 @@ export const FilePicker = ({
         {currentFiles.length > 0 && (
           <YStack gap="$2">
             {currentFiles.map((file, i) => (
-              <XStack key={`${file.name}-${i}`} px="$3" py="$2" height={44} items="center" gap="$3" rounded="$2" bg={colors.surface1}>
-                <SizableText flex={1} fontSize={14} fontWeight="500" color={colors.content}>{file.name}</SizableText>
-                {showFileSize && <SizableText fontSize={12} color={colors.contentSecondary}>{formatSize(file.size)}</SizableText>}
+              <XStack
+                key={`${file.name}-${i}`}
+                px="$3"
+                py="$2"
+                height={44}
+                items="center"
+                gap="$3"
+                rounded="$2"
+                bg={colors.surface1}
+              >
+                <SizableText
+                  flex={1}
+                  fontSize={14}
+                  fontWeight="500"
+                  color={colors.content}
+                >
+                  {file.name}
+                </SizableText>
+                {showFileSize && (
+                  <SizableText fontSize={12} color={colors.contentSecondary}>
+                    {formatSize(file.size)}
+                  </SizableText>
+                )}
                 {showRemoveAction && (
-                  <IconButton variant="ghost" uiSize="sm" onPress={() => removeFile(i)} aria-label={`Remove ${file.name}`}>✕</IconButton>
+                  <IconButton
+                    variant="ghost"
+                    uiSize="sm"
+                    onPress={() => removeFile(i)}
+                    aria-label={`Remove ${file.name}`}
+                  >
+                    ✕
+                  </IconButton>
                 )}
               </XStack>
             ))}
@@ -164,22 +210,49 @@ export const FilePicker = ({
     return (
       <YStack gap="$3">
         <YStack
-          borderWidth={2} borderStyle="dashed" borderColor={colors.outlineVariant} rounded="$2"
-          p="$6" items="center" justify="center" gap="$3" cursor="pointer" height={120}
+          borderWidth={2}
+          borderStyle="dashed"
+          borderColor={colors.outlineVariant}
+          rounded="$2"
+          p="$6"
+          items="center"
+          justify="center"
+          gap="$3"
+          cursor="pointer"
+          height={120}
           hoverStyle={{ borderColor: colors.accent, bg: colors.surface1 }}
           onPress={handlePick}
         >
-          <SizableText fontFamily="$body" fontSize={16} color={colors.contentSecondary}>{dropZoneLabel}</SizableText>
+          <SizableText fontFamily="$body" fontSize={16} color={colors.contentSecondary}>
+            {dropZoneLabel}
+          </SizableText>
           <SizableText fontFamily="$body" fontSize={13} color={colors.outline}>
             {accept !== '*/*' ? `Accepted: ${accept}` : 'All file types accepted'}
           </SizableText>
         </YStack>
         {currentFiles.map((file, i) => (
-          <XStack key={`${file.name}-${i}`} px="$3" py="$2" height={44} items="center" gap="$3" rounded="$2" bg={colors.surface1}>
-            <SizableText flex={1} fontSize={14} color={colors.content}>{file.name}</SizableText>
-            {showFileSize && <SizableText fontSize={12} color={colors.contentSecondary}>{formatSize(file.size)}</SizableText>}
+          <XStack
+            key={`${file.name}-${i}`}
+            px="$3"
+            py="$2"
+            height={44}
+            items="center"
+            gap="$3"
+            rounded="$2"
+            bg={colors.surface1}
+          >
+            <SizableText flex={1} fontSize={14} color={colors.content}>
+              {file.name}
+            </SizableText>
+            {showFileSize && (
+              <SizableText fontSize={12} color={colors.contentSecondary}>
+                {formatSize(file.size)}
+              </SizableText>
+            )}
             {showRemoveAction && (
-              <IconButton variant="ghost" uiSize="sm" onPress={() => removeFile(i)}>✕</IconButton>
+              <IconButton variant="ghost" uiSize="sm" onPress={() => removeFile(i)}>
+                ✕
+              </IconButton>
             )}
           </XStack>
         ))}
@@ -199,18 +272,39 @@ export const FilePicker = ({
               {currentFiles.length} file{currentFiles.length !== 1 ? 's' : ''} selected
             </SizableText>
             {showRemoveAction && (
-              <Button variant="ghost" uiSize="sm" onPress={clearFiles}>Clear all</Button>
+              <Button variant="ghost" uiSize="sm" onPress={clearFiles}>
+                Clear all
+              </Button>
             )}
           </>
         )}
       </XStack>
       {currentFiles.map((file, i) => (
-        <XStack key={`${file.name}-${i}`} px="$3" py="$2" height={44} items="center" gap="$3" rounded="$2" bg={colors.surface1}>
-          <SizableText flex={1} fontSize={14} fontWeight="500" color={colors.content}>{file.name}</SizableText>
-          {showFileSize && <SizableText fontSize={12} color={colors.contentSecondary}>{formatSize(file.size)}</SizableText>}
-          <SizableText fontSize={12} color={colors.contentSecondary}>{file.mimeType}</SizableText>
+        <XStack
+          key={`${file.name}-${i}`}
+          px="$3"
+          py="$2"
+          height={44}
+          items="center"
+          gap="$3"
+          rounded="$2"
+          bg={colors.surface1}
+        >
+          <SizableText flex={1} fontSize={14} fontWeight="500" color={colors.content}>
+            {file.name}
+          </SizableText>
+          {showFileSize && (
+            <SizableText fontSize={12} color={colors.contentSecondary}>
+              {formatSize(file.size)}
+            </SizableText>
+          )}
+          <SizableText fontSize={12} color={colors.contentSecondary}>
+            {file.mimeType}
+          </SizableText>
           {showRemoveAction && (
-            <IconButton variant="ghost" uiSize="sm" onPress={() => removeFile(i)}>✕</IconButton>
+            <IconButton variant="ghost" uiSize="sm" onPress={() => removeFile(i)}>
+              ✕
+            </IconButton>
           )}
         </XStack>
       ))}

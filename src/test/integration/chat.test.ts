@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
 
 test('opens as a familiar empty mobile chat', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto('/')
+  await page.goto('/chat')
 
   await expect(page.getByText('What would you like to understand?')).toBeVisible()
   await expect(page.getByLabel('Message Panora')).toBeVisible()
@@ -28,7 +28,7 @@ test('opens as a familiar empty mobile chat', async ({ page }) => {
 
 test('dismisses anchored menus when pressing outside', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto('/')
+  await page.goto('/chat')
 
   await page.getByLabel('Add context').click()
   await expect(page.getByRole('button', { name: /Upload/ })).toBeVisible()
@@ -47,7 +47,7 @@ test('dismisses anchored menus when pressing outside', async ({ page }) => {
 
 test('keeps the composer borderless while focused', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto('/')
+  await page.goto('/chat')
 
   const composer = page.getByLabel('Message Panora')
   await composer.focus()
@@ -58,19 +58,20 @@ test('keeps the composer borderless while focused', async ({ page }) => {
 
 test('opens grouped history and settings from the sidebar', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto('/')
+  await page.goto('/chat')
   await page.getByLabel('Open conversation sidebar').click()
   await expect(page.getByRole('button', { name: 'New chat' })).toBeVisible()
   await page.getByRole('button', { name: 'Settings' }).click()
-  await expect(page.getByText('Saffron & Espresso')).toBeVisible()
-  await expect(page.getByText('Panora does not use dark mode.')).toBeVisible()
+  await expect(
+    page.getByText('Panora uses the Rosewood & Blush light theme across the app.'),
+  ).toBeVisible()
 })
 
 test('selects report context and sends a streaming Markdown message', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto('/')
+  await page.goto('/chat')
   await page.getByLabel('Add context').click()
   await page
     .getByRole('button', { name: /Choose reports/ })
