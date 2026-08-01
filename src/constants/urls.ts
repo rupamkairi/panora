@@ -1,8 +1,8 @@
 import { getURL } from 'one'
 
-// Server URLs configuration
-// Force localhost on client to avoid 0.0.0.0 CORS issues
-const rawServerUrl = process.env.ONE_SERVER_URL || 'http://localhost:8081'
+// Native release builds cannot infer the web server from a browser location.
+// Configure this through ONE_SERVER_URL in eas.json (or the build environment).
+const configuredServerUrl = process.env.ONE_SERVER_URL?.replace(/\/$/, '')
 
 export const SERVER_URL = (() => {
   // For production and staging web, we can infer the server URL from location.
@@ -18,8 +18,7 @@ export const SERVER_URL = (() => {
     url ===
     'http://one-server.example.com' /* Means that this is not running through dev server but is a release build */
   ) {
-    // Default to production URL if not set
-    url = process.env.VITE_SERVER || 'https://panora.rupamkairi.dev'
+    return configuredServerUrl || 'https://panora-knowledge.vercel.app'
   }
   return url
 })()

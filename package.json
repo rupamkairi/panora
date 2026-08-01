@@ -48,7 +48,8 @@
     "test:integration": "bun run env:dev bun --cwd=./src/test playwright test",
     "test:unit": "bun run:dev vitest run -c ./src/test/vitest.config.ts",
     "test": "bun run test:unit && bun run test:integration",
-    "up": "tko up"
+    "up": "tko up",
+    "vercel:env": "bun run env:dev bun ./scripts/configure-vercel-env.ts"
   },
   "overrides": {
     "@expo/fingerprint": "0.15.3",

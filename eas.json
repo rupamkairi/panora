@@ -20,7 +20,8 @@
         "buildType": "apk"
       },
       "env": {
-        "APP_VARIANT": "preview"
+        "APP_VARIANT": "preview",
+        "ONE_SERVER_URL": "https://panora-knowledge.vercel.app"
       }
     },
     "production": {
@@ -29,7 +30,8 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "APP_VARIANT": "production"
+        "APP_VARIANT": "production",
+        "ONE_SERVER_URL": "https://panora-knowledge.vercel.app"
       }
     }
   },
