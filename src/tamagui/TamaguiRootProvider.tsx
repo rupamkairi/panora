@@ -18,7 +18,7 @@ export const TamaguiRootProvider = ({ children }: { children: ReactNode }) => {
 
 const TamaguiInnerProvider = ({ children }: { children: ReactNode }) => {
   return (
-    <TamaguiProvider disableInjectCSS config={config} defaultTheme="rosewood">
+    <TamaguiProvider disableInjectCSS config={config} defaultTheme="light">
       <ThemePreferenceProvider>
         {isWeb && <ThemeMetaTag />}
         {children}
