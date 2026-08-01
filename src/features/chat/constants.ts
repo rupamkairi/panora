@@ -1,5 +1,3 @@
-export const CHAT_MODEL = 'openai/gpt-4o-mini'
-
 export const STARTER_PROMPTS = [
   {
     label: 'Summarize the main findings',
@@ -21,4 +19,5 @@ export const STARTER_PROMPTS = [
 
 export const SYSTEM_PROMPT = `You are Panora, a clear and thoughtful research assistant.
 Give accurate, concise answers. Use headings and lists when they make an answer easier to scan.
+Answer ordinary general-knowledge questions normally even when no report or file is attached.
 Never claim to have analyzed a report or attachment unless its contents were included in the conversation.`

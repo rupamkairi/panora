@@ -1,4 +1,4 @@
-import { pgTable } from 'drizzle-orm/pg-core'
+import { index, pgTable } from 'drizzle-orm/pg-core'
 
 import type { InferSelectModel } from 'drizzle-orm'
 
@@ -69,3 +69,14 @@ export const verification = pgTable('verification', (t) => ({
   createdAt: t.timestamp('createdAt', { mode: 'string' }),
   updatedAt: t.timestamp('updatedAt', { mode: 'string' }),
 }))
+
+export const chatQuota = pgTable(
+  'chatQuota',
+  (t) => ({
+    quotaKey: t.text('quotaKey').primaryKey(),
+    windowStartedAt: t.timestamp('windowStartedAt'),
+    usedCount: t.integer('usedCount').default(0).notNull(),
+    expiresAt: t.timestamp('expiresAt').notNull(),
+  }),
+  (table) => [index('chatQuota_expiresAt_idx').on(table.expiresAt)],
+)

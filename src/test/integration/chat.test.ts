@@ -1,6 +1,25 @@
 import { expect, test } from '@playwright/test'
 
 test.beforeEach(async ({ page }) => {
+  await page.route('**/api/documents', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        documents: [
+          { id: 'document-1', title: 'Indexed handbook', status: 'ready' },
+        ],
+      }),
+    })
+  })
+  await page.route('**/api/chat/quota', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      headers: { 'X-Panora-Anonymous-Token': 'test-token' },
+      body: JSON.stringify({ remaining: 10, limit: 10, resetAt: null }),
+    })
+  })
   await page.route('**/api/chat', async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 100))
     await route.fulfill({
@@ -31,11 +50,11 @@ test('dismisses anchored menus when pressing outside', async ({ page }) => {
   await page.goto('/chat')
 
   await page.getByLabel('Add context').click()
-  await expect(page.getByRole('button', { name: /Upload/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Choose documents/ })).toBeVisible()
   await page
     .getByLabel('Dismiss Add chat context')
     .click({ position: { x: 300, y: 200 } })
-  await expect(page.getByRole('button', { name: /Upload/ })).toBeHidden()
+  await expect(page.getByRole('button', { name: /Choose documents/ })).toBeHidden()
 
   await page.getByLabel('Conversation actions').click()
   await expect(page.getByRole('button', { name: 'Share conversation' })).toBeVisible()
@@ -67,23 +86,23 @@ test('opens grouped history and settings from the sidebar', async ({ page }) => 
   ).toBeVisible()
 })
 
-test('selects report context and sends a streaming Markdown message', async ({
-  page,
-}) => {
+test('lets a chat user choose an indexed document without an app session', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/chat')
   await page.getByLabel('Add context').click()
   await page
-    .getByRole('button', { name: /Choose reports/ })
+    .getByRole('button', { name: /Choose documents/ })
     .last()
     .click()
-  await expect(page.getByLabel('Search reports')).toBeVisible()
-  await page.getByLabel('Select AI Index Report 2025').click()
-  await page.getByRole('button', { name: 'Add 1 report' }).click()
-  await expect(
-    page.getByTestId('app-container').getByText('AI Index Report 2025').last(),
-  ).toBeVisible()
+  await expect(page.getByLabel('Search documents')).toBeVisible()
+  await expect(page.getByText('Indexed handbook')).toBeVisible()
+  await page.getByText('Indexed handbook').click()
+  await expect(page.getByText('1 of 5 selected')).toBeVisible()
+})
 
+test('sends a generic question and renders streaming Markdown', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/chat')
   await page.getByLabel('Message Panora').fill('What is the central argument?')
   await page.getByLabel('Send message').click()
   await expect(page.getByText('Findings')).toBeVisible()

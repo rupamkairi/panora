@@ -3,7 +3,7 @@
 /**
  * @description Simple integration test runner
  *
- * runs docker, waits for migrations, builds, starts server, runs playwright tests
+ * migrates Neon, builds, starts the server, and runs Playwright tests
  */
 
 import { Socket } from 'node:net'
@@ -11,7 +11,6 @@ import { getTestEnv } from './helpers/get-test-env'
 
 // --- config ---
 const FRONTEND_PORT = 8081
-const DOCKER_TIMEOUT = 120_000 // 2 min
 const BUILD_TIMEOUT = 300_000 // 5 min
 const TEST_TIMEOUT = 120_000 // 2 min
 
@@ -90,38 +89,6 @@ async function waitForPort(port: number, timeoutMs = 30_000) {
   throw new Error(`port ${port} not available after ${timeoutMs}ms`)
 }
 
-async function waitForMigrations(timeoutMs = DOCKER_TIMEOUT) {
-  console.info('waiting for migrations...')
-  const start = Date.now()
-
-  while (Date.now() - start < timeoutMs) {
-    try {
-      const proc = Bun.spawn(
-        ['docker', 'compose', 'ps', '--all', '--format', 'json', 'migrate'],
-        { stdout: 'pipe', stderr: 'pipe' },
-      )
-      const text = await new Response(proc.stdout).text()
-      await proc.exited
-
-      const status = JSON.parse(text)
-      if (status.State === 'exited') {
-        if (status.ExitCode === 0) {
-          console.info('migrations complete')
-          return
-        }
-        throw new Error(`migrations failed with exit ${status.ExitCode}`)
-      }
-    } catch (err: unknown) {
-      const message = String(err)
-      if (!message.includes('JSON')) throw err
-    }
-
-    await Bun.sleep(1000)
-  }
-
-  throw new Error('migrations timed out')
-}
-
 async function cleanup() {
   console.info('\ncleaning up...')
   for (const p of processes) {
@@ -129,7 +96,6 @@ async function cleanup() {
       p.kill()
     } catch {}
   }
-  await $('docker compose down', { silent: true, timeout: 30_000 }).catch(() => {})
 }
 
 // --- main ---
@@ -144,23 +110,17 @@ async function main() {
   }
 
   try {
-    // clean start
-    await $('docker compose down', { silent: true, timeout: 30_000 }).catch(() => {})
+    const testEnv = await getTestEnv()
 
-    // build migrations
-    console.info('\nbuilding migrations...')
-    await $('bun run tko migrate build', { timeout: BUILD_TIMEOUT })
-
-    // start docker
-    console.info('\nstarting docker...')
-    await spawn('docker compose up --remove-orphans')
-    await waitForMigrations()
+    console.info('\nrunning Neon migrations...')
+    await $('bun ./src/database/migrate.ts', {
+      timeout: BUILD_TIMEOUT,
+      env: testEnv,
+    })
 
     // install playwright
     console.info('\ninstalling playwright...')
     await $('bunx playwright install chromium', { timeout: BUILD_TIMEOUT })
-
-    const testEnv = await getTestEnv()
 
     // build
     console.info('\nbuilding...')

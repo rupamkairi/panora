@@ -9,9 +9,6 @@ export async function ensureAuth(req: Request, role?: 'admin') {
 
   if (!session) {
     console.warn(`Not authorized: ${req.url}, no session`)
-    for (const [key, value] of req.headers.entries()) {
-      console.warn(`header: ${key} = ${value}`)
-    }
     throw Response.json(
       {
         error: `Not authorized`,

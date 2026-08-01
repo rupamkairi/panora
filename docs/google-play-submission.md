@@ -39,8 +39,7 @@ this identifier before uploading.
 | URL scheme | `panora` |
 | Vercel project name | `panora` |
 | Production hostname | `panora.rupamkairi.dev` |
-| Zero hostname | `zero.panora.rupamkairi.dev` |
-| Database/publication prefix | `panora` / `zero_panora` |
+| Database | PostgreSQL |
 
 ## Main store listing
 
@@ -142,21 +141,16 @@ Set these production variables in Vercel:
 ONE_SERVER_URL=https://panora.rupamkairi.dev
 BETTER_AUTH_URL=https://panora.rupamkairi.dev
 VITE_WEB_HOSTNAME=panora.rupamkairi.dev
-VITE_ZERO_HOSTNAME=zero.panora.rupamkairi.dev
 
 BETTER_AUTH_SECRET=<GENERATE_A_LONG_RANDOM_SECRET>
 OPENROUTER_API_KEY=<SERVER_ONLY_KEY>
 OPENROUTER_MODEL=openai/gpt-4o-mini
 
-ZERO_UPSTREAM_DB=<PRODUCTION_POSTGRES_URL>
-ZERO_CVR_DB=<ZERO_CVR_DATABASE_URL>
-ZERO_CHANGE_DB=<ZERO_CHANGE_DATABASE_URL>
+DATABASE_URL=<PRODUCTION_POSTGRES_URL>
 ```
 
 Add `panora.rupamkairi.dev` to Vercel, then create the DNS record Vercel shows
-in the DNS provider for `rupamkairi.dev`. Deploy the persistent Zero service
-separately at `zero.panora.rupamkairi.dev`; it is not suitable for a Vercel
-serverless function.
+in the DNS provider for `rupamkairi.dev`.
 
 Use the same production values when building Android so the installed app calls
 the Vercel deployment rather than a development or Takeout endpoint.
@@ -336,7 +330,7 @@ configuration.
    `https://panora.rupamkairi.dev`; the release fallback is still
    `https://takeout.tamagui.dev`.
 2. Replace Takeout constants (`APP_NAME`, domain, admin email, trusted origins,
-   demo credentials, and Zero fallback hosts) with Panora production values.
+   and demo credentials) with Panora production values.
 3. Deploy and test the public privacy policy, terms, support, and account
    deletion URLs.
 4. Add in-app and web account deletion or remove account creation from the

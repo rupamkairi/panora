@@ -1,11 +1,11 @@
 ---
 name: takeout-overview
-description: Takeout Free - production-ready starter for real-time cross-platform apps. INVOKE WHEN: Takeout starter, project overview, build pipeline, CI/CD, GitHub Actions, infrastructure, native dependencies, iOS/Android, architecture questions, how does X work, repository structure, development scripts, Zero integration, database operations.
+description: Takeout Free - production-ready starter for cross-platform apps. INVOKE WHEN: Takeout starter, project overview, build pipeline, CI/CD, GitHub Actions, infrastructure, native dependencies, iOS/Android, architecture questions, how does X work, repository structure, development scripts, database operations.
 ---
 
 # Takeout Free
 
-Takeout Free is a production-ready starter for building real-time, cross-platform
+Takeout Free is a production-ready starter for building cross-platform
 applications. It's a highly simplified, open-source version of Takeout.
 
 Find out much more by using `bun tko` for available commands and
@@ -26,8 +26,8 @@ and Playwright, and managing database migrations.
 ## Services Integration
 
 Environment management is code-driven, with validation and automatic generation
-of the env files. Docker Compose orchestrates local development and test
-environments.
+of the env files. Panora uses the hosted Neon PostgreSQL database configured by
+`DATABASE_URL`; Docker and local PostgreSQL are not part of this project setup.
 
 ## Development Scripts
 
@@ -48,12 +48,6 @@ event emitter system for cross-component communication, keyboard shortcut
 management that works across platforms, URL unfurling for rich link previews,
 image upload with progress and error handling, and drag and drop that works in
 the browser with support for nested drop areas.
-
-## Zero Integration
-
-Zero provides the real-time sync foundation. We've built the `on-zero` package
-which adds tons of nice helpers on top, and gotten a nice setup for Zero that
-makes managing it, debugging it and deploying it easier.
 
 ## Development Experience
 
@@ -101,10 +95,6 @@ capabilities:
 - @nandorojo/galeria for image galleries
 - react-native-svg for SVG rendering
 - @tamagui/linear-gradient for gradient support
-
-**Data & Storage**
-
-- @op-engineering/op-sqlite for local SQLite database (used by Zero)
 
 **System & Utilities**
 

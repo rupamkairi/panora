@@ -23,8 +23,6 @@
     "android:development": "eas build --platform android --profile development --local --output ./dist/panora-development.apk",
     "android:apk": "eas build --platform android --profile preview",
     "android:production": "eas build --platform android --profile production",
-    "backend:clean": "docker compose down --volumes --remove-orphans --rmi local",
-    "backend": "bun run migrate:build && docker compose up --remove-orphans",
     "build": "one build",
     "check": "tko check",
     "check:all": "tko check --all",
@@ -40,6 +38,7 @@
     "format": "oxfmt",
     "lint:fix": "oxfmt && oxlint --import-plugin --type-aware --fix --fix-suggestions",
     "lint": "oxlint --import-plugin --type-aware",
+    "knowledge:worker": "bun ./scripts/knowledge-worker.ts",
     "migrate": "bun run env:dev bun ./src/database/migrate.ts",
     "migrate:build": "tko migrate build",
     "prebuild:native": "one prebuild",
@@ -49,8 +48,7 @@
     "test:integration": "bun run env:dev bun --cwd=./src/test playwright test",
     "test:unit": "bun run:dev vitest run -c ./src/test/vitest.config.ts",
     "test": "bun run test:unit && bun run test:integration",
-    "up": "tko up",
-    "zero:generate": "on-zero generate --after 'bun lint:fix'"
+    "up": "tko up"
   },
   "overrides": {
     "@expo/fingerprint": "0.15.3",
@@ -65,6 +63,7 @@
     "react-native-reanimated": "4.2.1"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1101.0",
     "@better-auth/expo": "^1.3.32",
     "@better-fetch/fetch": "^1.1.18",
     "@expo-google-fonts/anybody": "^0.4.2",
@@ -73,7 +72,6 @@
     "@gorhom/bottom-sheet": "^5.2.6",
     "@react-native-masked-view/masked-view": "^0.3.2",
     "@react-native-menu/menu": "^2.0.0",
-    "@rocicorp/zero": "0.26.2",
     "@take-out/better-auth-utils": "^0.2.10",
     "@take-out/cli": "^0.2.10",
     "@take-out/helpers": "^0.2.10",
@@ -117,9 +115,10 @@
     "expo-splash-screen": "~55.0.23",
     "expo-sqlite": "~55.0.18",
     "expo-web-browser": "~55.0.18",
+    "mammoth": "^1.12.0",
     "motion": "12.36.0",
-    "on-zero": "0.2.10",
     "one": "1.14.2",
+    "pdf-parse": "^2.4.5",
     "pg": "8.18.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
@@ -174,7 +173,6 @@
     }
   },
   "trustedDependencies": [
-    "@rocicorp/zero-sqlite3",
     "oxc-parser"
   ],
   "env": {
@@ -182,23 +180,21 @@
     "BETTER_AUTH_URL": true,
     "ONE_SERVER_URL": true,
     "OPENROUTER_API_KEY": "",
-    "OPENROUTER_MODEL": "openai/gpt-4o-mini",
-    "VITE_ZERO_HOSTNAME": "",
+    "OPENROUTER_MODEL": "openrouter/free",
+    "CHAT_QUOTA_SECRET": "",
     "VITE_WEB_HOSTNAME": "",
-    "ZERO_VERSION": "$dep:@rocicorp/zero",
-    "ZERO_NUM_SYNC_WORKERS": "2",
-    "ZERO_CVR_MAX_CONNS": "4",
-    "ZERO_UPSTREAM_MAX_CONNS": "8",
-    "ZERO_PER_USER_MUTATION_LIMIT_MAX": "30",
-    "ZERO_PER_USER_MUTATION_LIMIT_WINDOW_MS": "60000",
-    "ZERO_MUTATE_FORWARD_COOKIES": "true",
-    "ZERO_QUERY_FORWARD_COOKIES": "true",
-    "ZERO_APP_PUBLICATIONS": "zero_takeout"
+    "DATABASE_URL": true,
+    "ADMIN_USERNAME": "",
+    "ADMIN_PASSWORD": "",
+    "CLOUDFLARE_R2_ENDPOINT": "",
+    "CLOUDFLARE_R2_ACCESS_KEY": "",
+    "CLOUDFLARE_R2_SECRET_KEY": "",
+    "CLOUDFLARE_R2_BUCKET": "",
+    "OPENROUTER_EMBEDDING_MODEL": "nvidia/nemotron-3-embed-1b:free"
   },
   "upgradeSets": {
     "takeout": [
-      "@take-out/*",
-      "on-zero"
+      "@take-out/*"
     ],
     "tamagui": [
       "tamagui",
@@ -208,9 +204,6 @@
       "one",
       "vxrn",
       "@vxrn/*"
-    ],
-    "zero": [
-      "@rocicorp/zero"
     ],
     "better-auth": [
       "better-auth",

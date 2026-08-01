@@ -1,23 +1,45 @@
 import { API_URL } from '~/constants/urls'
 
 import type { ChatMessage, ChatStreamEvent } from './types'
+import { getQuotaHeaders, rememberQuotaToken } from './quota'
 
 export async function sendChatMessage(
   messages: ChatMessage[],
   onEvent: (event: ChatStreamEvent) => void,
   signal?: AbortSignal,
+  options?: { documentIds: string[]; webSearchEnabled: boolean },
 ) {
+  const quotaHeaders = await getQuotaHeaders()
   const response = await fetch(`${API_URL}/chat`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream',
+      ...quotaHeaders,
+    },
     body: JSON.stringify({
       stream: true,
       messages: messages.slice(-20).map(({ role, content }) => ({ role, content })),
+      documentIds: options?.documentIds ?? [],
+      webSearchEnabled: options?.webSearchEnabled ?? true,
     }),
     signal,
   })
+  rememberQuotaToken(response)
 
   if (!response.ok || !response.body) {
+    const remaining = Number(response.headers.get('x-ratelimit-remaining'))
+    const limit = Number(response.headers.get('x-ratelimit-limit'))
+    if (Number.isFinite(remaining) && Number.isFinite(limit)) {
+      onEvent({
+        type: 'quota',
+        quota: {
+          remaining,
+          limit,
+          resetAt: response.headers.get('x-ratelimit-reset'),
+        },
+      })
+    }
     const data = (await response.json().catch(() => null)) as { error?: string } | null
     throw new Error(data?.error || 'Panora could not complete that request.')
   }
@@ -38,8 +60,11 @@ export async function sendChatMessage(
       const payload = line.slice(5).trim()
       if (!payload || payload === '[DONE]') continue
       const event = JSON.parse(payload) as ChatStreamEvent
-      if (event.type === 'delta') onEvent(event)
+      if (event.type === 'error') {
+        onEvent(event)
+        throw new Error(event.error)
+      }
+      onEvent(event)
     }
   }
-  onEvent({ type: 'complete' })
 }

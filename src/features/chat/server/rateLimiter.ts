@@ -20,7 +20,7 @@ const pruneExpiredClients = (now: number) => {
   for (const [clientId, state] of clients) {
     if (
       state.concurrentRequests === 0 &&
-      now - state.windowStartedAt >= CHAT_LIMITS.windowMs
+      now - state.windowStartedAt >= CHAT_LIMITS.abuseWindowMs
     ) {
       clients.delete(clientId)
     }
@@ -29,7 +29,7 @@ const pruneExpiredClients = (now: number) => {
 
 const getState = (clientId: string, now: number) => {
   const current = clients.get(clientId)
-  if (!current || now - current.windowStartedAt >= CHAT_LIMITS.windowMs) {
+  if (!current || now - current.windowStartedAt >= CHAT_LIMITS.abuseWindowMs) {
     const state: ClientState = {
       windowStartedAt: now,
       requestCount: 0,
@@ -49,7 +49,7 @@ export const acquireChatRateLimit = (
   const state = getState(clientId, now)
   const retryAfterSeconds = Math.max(
     1,
-    Math.ceil((state.windowStartedAt + CHAT_LIMITS.windowMs - now) / 1000),
+    Math.ceil((state.windowStartedAt + CHAT_LIMITS.abuseWindowMs - now) / 1000),
   )
 
   if (

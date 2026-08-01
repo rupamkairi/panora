@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { AppState } from 'react-native'
 
 import { sendChatMessage } from './api'
+import { fetchChatQuota, INITIAL_CHAT_QUOTA } from './quota'
 import { chatRepository, groupConversation } from './repository'
 import { ChatSession, type ChatSnapshot } from './session'
 import type {
@@ -16,6 +18,7 @@ const emptySnapshot: ChatSnapshot = {
   isSending: false,
   error: null,
   canRetry: false,
+  quota: INITIAL_CHAT_QUOTA,
 }
 
 export function useChat() {
@@ -24,6 +27,7 @@ export function useChat() {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [draft, setDraftState] = useState('')
   const [contextItems, setContextItems] = useState<ChatContextItem[]>([])
+  const [webSearchEnabled, setWebSearchEnabled] = useState(true)
   const snapshot = useSyncExternalStore(
     session.subscribe,
     session.getSnapshot,
@@ -33,7 +37,21 @@ export function useChat() {
   useEffect(() => {
     session.activate()
     void chatRepository.list().then(setConversations)
+    void fetchChatQuota()
+      .then((quota) => session.setQuota(quota))
+      .catch(() => undefined)
     return () => session.dispose()
+  }, [session])
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        void fetchChatQuota()
+          .then((quota) => session.setQuota(quota))
+          .catch(() => undefined)
+      }
+    })
+    return () => subscription.remove()
   }, [session])
 
   useEffect(() => {
@@ -137,9 +155,20 @@ export function useChat() {
     [session],
   )
 
+  const send = useCallback(
+    (content: string) =>
+      session.send(content, {
+        documentIds: contextItems
+          .filter((item) => item.kind === 'report')
+          .map((item) => item.reportId),
+        webSearchEnabled,
+      }),
+    [contextItems, session, webSearchEnabled],
+  )
+
   return {
     ...snapshot,
-    send: session.send,
+    send,
     stop: session.stop,
     retry: session.retry,
     setFeedback,
@@ -155,5 +184,7 @@ export function useChat() {
     contextItems,
     addContextItems,
     removeContextItem,
+    webSearchEnabled,
+    setWebSearchEnabled,
   }
 }

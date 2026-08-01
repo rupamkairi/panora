@@ -51,7 +51,6 @@ export const authServer = betterAuth({
       },
 
       jwks: {
-        // compat with zero
         keyPairConfig: { alg: 'EdDSA', crv: 'Ed25519' },
       },
     }),

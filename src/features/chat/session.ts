@@ -1,5 +1,6 @@
 import type {
   ChatMessage,
+  ChatQuota,
   ChatStreamEvent,
   ChatTransport,
   MessageFeedback,
@@ -10,6 +11,7 @@ export type ChatSnapshot = {
   isSending: boolean
   error: string | null
   canRetry: boolean
+  quota: ChatQuota
 }
 
 const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`
@@ -20,6 +22,7 @@ const initialSnapshot: ChatSnapshot = {
   isSending: false,
   error: null,
   canRetry: false,
+  quota: { remaining: 10, limit: 10, resetAt: null },
 }
 
 export class ChatSession {
@@ -27,6 +30,7 @@ export class ChatSession {
   private readonly listeners = new Set<() => void>()
   private request: AbortController | null = null
   private disposed = false
+  private lastOptions = { documentIds: [] as string[], webSearchEnabled: true }
 
   constructor(private readonly transport: ChatTransport) {}
 
@@ -40,24 +44,43 @@ export class ChatSession {
     this.disposed = false
   }
 
-  send = (content: string) => {
+  send = (
+    content: string,
+    options = { documentIds: [] as string[], webSearchEnabled: true },
+  ) => {
     const text = content.trim()
-    if (!text || this.request || this.disposed) return false
+    if (!text || this.request || this.disposed || this.snapshot.quota.remaining === 0)
+      return false
     const userMessage: ChatMessage = {
       id: createId(),
       role: 'user',
       content: text,
       createdAt: now(),
       status: 'complete',
+      sourceDocumentIds: [...options.documentIds],
+      webSearchEnabled: options.webSearchEnabled,
     }
     const messages = [...this.snapshot.messages, userMessage]
-    this.update({ messages, isSending: true, error: null, canRetry: false })
-    this.startRequest(messages)
+    this.update({
+      messages,
+      isSending: true,
+      error: null,
+      canRetry: false,
+      quota: this.snapshot.quota,
+    })
+    this.lastOptions = options
+    this.startRequest(messages, options)
     return true
   }
 
   retry = (instruction?: 'retry' | 'extend' | 'shorten') => {
-    if (this.request || this.disposed || this.snapshot.messages.length === 0) return false
+    if (
+      this.request ||
+      this.disposed ||
+      this.snapshot.messages.length === 0 ||
+      this.snapshot.quota.remaining === 0
+    )
+      return false
     const withoutFailed = this.snapshot.messages.filter(
       (message) => !(message.role === 'assistant' && message.status === 'failed'),
     )
@@ -82,8 +105,9 @@ export class ChatSession {
       isSending: true,
       error: null,
       canRetry: false,
+      quota: this.snapshot.quota,
     })
-    this.startRequest(requestMessages)
+    this.startRequest(requestMessages, this.lastOptions)
     return true
   }
 
@@ -112,16 +136,26 @@ export class ChatSession {
     })
   }
 
+  setQuota = (quota: ChatQuota) => {
+    this.update({ ...this.snapshot, quota })
+  }
+
   reset = () => {
     this.request?.abort()
     this.request = null
-    this.update(initialSnapshot)
+    this.update({ ...initialSnapshot, quota: this.snapshot.quota })
   }
 
   restore = (snapshot: ChatSnapshot) => {
     this.request?.abort()
     this.request = null
-    this.update({ ...snapshot, isSending: false, error: null, canRetry: false })
+    this.update({
+      ...snapshot,
+      quota: this.snapshot.quota,
+      isSending: false,
+      error: null,
+      canRetry: false,
+    })
   }
 
   dispose = () => {
@@ -130,7 +164,10 @@ export class ChatSession {
     this.request = null
   }
 
-  private startRequest(messages: ChatMessage[]) {
+  private startRequest(
+    messages: ChatMessage[],
+    options: { documentIds: string[]; webSearchEnabled: boolean },
+  ) {
     const controller = new AbortController()
     this.request = controller
     const assistantId = createId()
@@ -151,6 +188,8 @@ export class ChatSession {
             },
           ],
         })
+      } else if (event.type === 'quota') {
+        this.update({ ...this.snapshot, quota: event.quota })
       } else if (event.type === 'delta') {
         this.update({
           ...this.snapshot,
@@ -160,7 +199,7 @@ export class ChatSession {
               : message,
           ),
         })
-      } else {
+      } else if (event.type === 'complete') {
         this.update({
           ...this.snapshot,
           messages: this.snapshot.messages.map((message) =>
@@ -169,11 +208,14 @@ export class ChatSession {
           isSending: false,
           error: null,
           canRetry: false,
+          quota: event.quota ?? this.snapshot.quota,
         })
+      } else if (event.quota) {
+        this.update({ ...this.snapshot, quota: event.quota })
       }
     }
 
-    void this.transport(messages, onEvent, controller.signal)
+    void this.transport(messages, onEvent, controller.signal, options)
       .catch((cause: unknown) => {
         if (this.disposed || this.request !== controller || controller.signal.aborted)
           return

@@ -9,7 +9,14 @@ import type { Conversation } from '../types'
 import { useChat } from '../useChat'
 import { STARTER_PROMPTS } from '../constants'
 import { LogoIcon } from '~/interface/app/LogoIcon'
-import { Button, FloatingMenu, IconButton, Popover, Text } from '~/interface/components'
+import {
+  Button,
+  FloatingMenu,
+  IconButton,
+  Popover,
+  QuotaIndicator,
+  Text,
+} from '~/interface/components'
 import {
   MenuIcon,
   MoreIcon,
@@ -88,6 +95,7 @@ export function ChatScreen() {
             <Text flex={1} center size="sm" weight="semibold" numberOfLines={1} px="$2">
               {title}
             </Text>
+            <QuotaIndicator quota={chat.quota} />
             <IconButton
               aria-label="Conversation actions"
               onPress={() => setMenuOpen((value) => !value)}
@@ -105,7 +113,10 @@ export function ChatScreen() {
           >
             <YStack flex={1} px="$4" pt="$4" pb="$5">
               {!hasMessages ? (
-                <EmptyChat onPrompt={(prompt) => chat.send(prompt)} />
+                <EmptyChat
+                  disabled={chat.quota.remaining === 0}
+                  onPrompt={(prompt) => chat.send(prompt)}
+                />
               ) : (
                 <YStack gap="$5">
                   {chat.messages.map((message) =>
@@ -127,6 +138,7 @@ export function ChatScreen() {
                         key={message.id}
                         message={message}
                         onRetry={(kind) => chat.retry(kind)}
+                        retryDisabled={chat.quota.remaining === 0}
                         onFeedback={(feedback) =>
                           chat.setFeedback(
                             message.id,
@@ -147,6 +159,7 @@ export function ChatScreen() {
                           self="flex-start"
                           size="$2"
                           variant="ghost"
+                          disabled={chat.quota.remaining === 0}
                           onPress={() => chat.retry('retry')}
                         >
                           Try again
@@ -165,9 +178,12 @@ export function ChatScreen() {
             onSend={chat.send}
             onStop={chat.stop}
             isSending={chat.isSending}
+            isExhausted={chat.quota.remaining === 0}
             contextItems={chat.contextItems}
             onAddContextItems={chat.addContextItems}
             onRemoveContextItem={chat.removeContextItem}
+            webSearchEnabled={chat.webSearchEnabled}
+            onWebSearchEnabledChange={chat.setWebSearchEnabled}
           />
         </KeyboardAvoidingView>
       </ChatErrorBoundary>
@@ -220,7 +236,13 @@ export function ChatScreen() {
   )
 }
 
-function EmptyChat({ onPrompt }: { onPrompt: (prompt: string) => void }) {
+function EmptyChat({
+  onPrompt,
+  disabled,
+}: {
+  onPrompt: (prompt: string) => void
+  disabled: boolean
+}) {
   return (
     <YStack flex={1} justify="center" pb="$8" gap="$6">
       <YStack items="center" gap="$2">
@@ -243,6 +265,7 @@ function EmptyChat({ onPrompt }: { onPrompt: (prompt: string) => void }) {
             borderWidth={1}
             borderColor="$outlineVariant"
             icon={<PlusIcon size={16} />}
+            disabled={disabled}
             onPress={() => onPrompt(prompt.prompt)}
           >
             {prompt.label}
@@ -256,10 +279,12 @@ function EmptyChat({ onPrompt }: { onPrompt: (prompt: string) => void }) {
 function AssistantMessage({
   message,
   onRetry,
+  retryDisabled,
   onFeedback,
 }: {
   message: ReturnType<typeof useChat>['messages'][number]
   onRetry: (kind: 'retry' | 'extend' | 'shorten') => void
+  retryDisabled: boolean
   onFeedback: (feedback: 'up' | 'down') => void
 }) {
   const [retryOpen, setRetryOpen] = useState(false)
@@ -296,7 +321,7 @@ function AssistantMessage({
               </YStack>
             }
           >
-            <Button size="$2" variant="ghost">
+            <Button size="$2" variant="ghost" disabled={retryDisabled}>
               Retry
             </Button>
           </Popover>

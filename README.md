@@ -6,17 +6,15 @@
 
 Panora is a full-stack, cross-platform application built from Takeout Free. Its
 public landing page is an ephemeral AI chat powered by a server-only OpenRouter
-proxy; the original auth, Zero, database, Docker, and migration foundations are
-retained for future features.
+proxy, with PostgreSQL-backed authentication and quota enforcement.
 
 ## Prerequisites
 
 Before you begin, ensure you have:
 
 - **Bun** - [Install Bun](https://bun.sh)
-- **Docker** - [Install Docker](https://docs.docker.com/get-docker/) (on macOS,
-  we recommend [OrbStack](https://orbstack.dev) as a faster alternative)
 - **Git** - For version control
+- Access to the configured Neon PostgreSQL project
 
 For mobile development:
 
@@ -27,8 +25,10 @@ For mobile development:
 
 ```bash
 bun install
-bun backend      # start docker services (postgres, zero)
-bun dev          # start web dev server at http://localhost:8092
+bun migrate      # apply migrations to the configured Neon database
+bun dev          # start the web development server
+# In a second terminal:
+bun knowledge:worker
 ```
 
 ## Stack
@@ -36,7 +36,6 @@ bun dev          # start web dev server at http://localhost:8092
 At a high level, the primary technologies used are:
 
 - [One](https://onestack.dev) - Universal React framework
-- [Zero](https://zero.rocicorp.dev) - Real-time sync
 - [Tamagui](https://tamagui.dev) - Universal UI
 - [Better Auth](https://www.better-auth.com) - Authentication
 - [Drizzle ORM](https://orm.drizzle.team) - Database schema
@@ -53,8 +52,6 @@ panora/
 │   ├── features/          # Feature modules (chat, auth, storage, theme)
 │   ├── interface/         # Reusable UI components
 │   ├── database/          # Database schema and migrations
-│   ├── data/              # Zero schema, models, and queries
-│   ├── zero/              # Real-time sync configuration
 │   ├── server/            # Server-side code
 │   └── tamagui/           # Theme configuration
 ├── scripts/               # CI/CD and helper scripts
@@ -69,7 +66,8 @@ panora/
 bun dev                      # start web + mobile dev server
 bun ios                      # run iOS simulator
 bun android                  # run Android emulator
-bun backend                  # start docker services
+bun migrate                  # migrate the configured Neon database
+bun knowledge:worker         # run document indexing
 
 # code quality
 bun check                    # typescript type checking
@@ -90,19 +88,18 @@ bun ci                       # full CI/CD with deployment
 
 ## Database
 
-### Local Development
+### Development database
 
-PostgreSQL runs in Docker on port 5444:
-
-- Main database: `postgresql://user:password@localhost:5444/postgres`
-- Zero sync databases: `zero_cvr` and `zero_cdb`
+Panora uses the hosted Neon PostgreSQL database configured by `DATABASE_URL` in
+the environment files. Local Docker and local PostgreSQL are not part of the
+supported development setup.
 
 ### Migrations
 
 Update your schema in:
 
-- `src/database/schema-public.ts` - Public tables (exposed to Zero/client)
-- `src/database/schema-private.ts` - Private tables
+- `src/database/schema-public.ts` - Application tables
+- `src/database/schema-private.ts` - Authentication and server-only tables
 
 Then run:
 
@@ -130,10 +127,8 @@ BETTER_AUTH_URL=<url>
 # server
 ONE_SERVER_URL=<url>
 
-# zero
-ZERO_UPSTREAM_DB=<connection-string>
-ZERO_CVR_DB=<connection-string>
-ZERO_CHANGE_DB=<connection-string>
+# database
+DATABASE_URL=<postgresql-connection-string>
 
 # storage (S3/R2)
 CLOUDFLARE_R2_ENDPOINT=<endpoint>
@@ -148,14 +143,17 @@ See `.env.production.example` for complete production configuration.
 ```bash
 OPENROUTER_API_KEY=your-openrouter-key
 OPENROUTER_MODEL=openai/gpt-4o-mini
+CHAT_QUOTA_SECRET=your-chat-quota-secret
 ```
 
 `OPENROUTER_API_KEY` is server-only. The model is optional and defaults to
-`openai/gpt-4o-mini`. Public chat requests are limited to 20 messages and 16,000
-aggregate characters, 10 requests per client per minute, and two concurrent
-requests. Configure an OpenRouter account spending cap as well: process-local
-rate limiting cannot fully prevent distributed abuse, and multi-instance
-deployments should enforce the same policy at the edge or in a shared store.
+`openai/gpt-4o-mini`. `CHAT_QUOTA_SECRET` signs anonymous installation identities
+and hashes short-lived network signals; generate it independently for production.
+Public chat requests are limited to 20 messages and 16,000 aggregate characters,
+10 asks per anonymous installation and network per fixed 24-hour window, a
+10-request-per-minute abuse burst, and two concurrent requests. The daily quota
+is stored in PostgreSQL and works across server instances. Configure an OpenRouter
+account spending cap as an additional safeguard.
 
 ## Mobile Apps
 
@@ -197,9 +195,7 @@ Requires Android Studio, JDK 17, and Android SDK Platform 36.
 
 1. Add schema to `src/database/schema-public.ts`
 2. Run `bun migrate`
-3. Add Zero model to `src/data/models/`
-4. Run `bun zero:generate`
-5. Use queries in your components
+3. Access the data through a feature repository or server action
 
 ### UI Components
 

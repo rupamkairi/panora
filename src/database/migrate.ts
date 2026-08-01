@@ -1,73 +1,42 @@
 import { migrate } from '@take-out/postgres/migrate'
-import { getTableName } from 'drizzle-orm'
-import { PgTable } from 'drizzle-orm/pg-core'
+import { readdirSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 
-import { ZERO_CHANGE_DB, ZERO_CVR_DB, ZERO_UPSTREAM_DB } from '~/server/env-server'
+import { DATABASE_URL } from '~/server/env-server'
 
-import * as schemaPrivate from './schema-private'
-
-const migrationsTS = import.meta.glob(`./migrations/*.ts`)
+const migrationsTS =
+  typeof import.meta.glob === 'function'
+    ? import.meta.glob(`./migrations/*.ts`)
+    : Object.fromEntries(
+        readdirSync(fileURLToPath(new URL('./migrations/', import.meta.url).href))
+          .filter((file) => /^\d+.*\.ts$/.test(file))
+          .map((file) => [
+            `./migrations/${file}`,
+            () => import(new URL(`./migrations/${file}`, import.meta.url).href),
+          ]),
+      )
 
 // vite tries to eval this at build time :/
 const PROCESS_ENV = globalThis['process']['env']
 
-// derive private table names from schema-private.ts — no manual list to maintain
-const PRIVATE_TABLES = [
-  ...Object.values(schemaPrivate)
-    .filter((v) => v instanceof PgTable)
-    .map((t) => getTableName(t as PgTable)),
-  'migrations',
-]
-
-async function ensureZeroPublication() {
-  const { Pool } = await import('pg')
-  const pool = new Pool({
-    connectionString: ZERO_UPSTREAM_DB,
-    ssl: ZERO_UPSTREAM_DB?.includes('sslmode=require')
-      ? { rejectUnauthorized: false }
-      : undefined,
-  })
-  const client = await pool.connect()
-  try {
-    const { rows } = await client.query(
-      `SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename NOT IN (${PRIVATE_TABLES.map((_, i) => `$${i + 1}`).join(', ')})`,
-      PRIVATE_TABLES,
-    )
-    if (!rows.length) return
-    const tableList = rows.map((r: any) => `"${r.tablename}"`).join(', ')
-    await client.query('DROP PUBLICATION IF EXISTS zero_takeout')
-    await client.query(`CREATE PUBLICATION zero_takeout FOR TABLE ${tableList}`)
-    console.info(`[migrate] created publication zero_takeout for ${rows.length} tables`)
-  } finally {
-    client.release()
-    await pool.end()
-  }
-}
-
-function stripQueryParams(connStr: string | undefined): string | undefined {
-  if (!connStr) return connStr
-  return connStr.split('?')[0]
-}
-
 export async function main() {
   console.info('🔄 waiting for database to be ready...')
-  await waitForDatabase(ZERO_UPSTREAM_DB!)
+  await waitForDatabase(DATABASE_URL)
 
   console.info('🚀 running migrations...')
   await migrate({
-    connectionString: ZERO_UPSTREAM_DB!,
+    connectionString: DATABASE_URL,
     migrationsGlob: migrationsTS,
-    cvrDb: stripQueryParams(ZERO_CVR_DB),
-    changeDb: stripQueryParams(ZERO_CHANGE_DB),
     gitSha: process.env.GIT_SHA,
+    // @take-out/postgres exits the CLI process after this callback, so the
+    // completion message must be emitted here rather than after migrate().
     onMigrationComplete: async () => {
-      await ensureZeroPublication()
+      console.info('✅ migrations complete')
     },
   })
-  console.info('✅ migrations complete')
 }
 
-if (PROCESS_ENV.RUN) {
+if (import.meta.main || PROCESS_ENV.RUN) {
   main().catch((err: unknown) => {
     console.error('Migration failed:', err)
     process.exit(1)

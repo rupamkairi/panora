@@ -17,13 +17,8 @@ export default {
   ssr: {
     // we set this as it generally improves compatability by optimizing all deps for node
     noExternal: true,
-    // @rocicorp/zero must be external to prevent Symbol mismatch between
-    // @rocicorp/zero and @rocicorp/zero/server - they share queryInternalsTag
-    // Symbol that must be the same instance for query transforms to work
     external: [
-      'on-zero',
       '@vxrn/mdx',
-      '@rocicorp/zero',
       'retext',
       'retext-smartypants',
       '@opentelemetry/api',
@@ -91,12 +86,7 @@ export default {
           config: {
             build: {
               rollupOptions: {
-                external: [
-                  '@rocicorp/zero',
-                  'better-auth',
-                  'better-auth/plugins',
-                  'sharp',
-                ],
+                external: ['better-auth', 'better-auth/plugins', 'sharp'],
               },
             },
           },

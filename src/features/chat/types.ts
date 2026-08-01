@@ -9,6 +9,8 @@ export type ChatMessage = {
   createdAt: string
   status: MessageStatus
   feedback?: MessageFeedback
+  sourceDocumentIds?: string[]
+  webSearchEnabled?: boolean
 }
 
 export type OpenRouterMessage = Pick<ChatMessage, 'role' | 'content'>
@@ -56,10 +58,20 @@ export type ConversationGroup = 'Pinned' | 'Today' | 'Previous 7 Days' | 'Older'
 export type ChatStreamEvent =
   | { type: 'start' }
   | { type: 'delta'; content: string }
-  | { type: 'complete' }
+  | { type: 'quota'; quota: ChatQuota }
+  | { type: 'complete'; quota?: ChatQuota }
+  | { type: 'error'; error: string; quota?: ChatQuota }
+
+export type ChatQuota = {
+  remaining: number
+  limit: number
+  resetAt: string | null
+  unlimited?: boolean
+}
 
 export type ChatTransport = (
   messages: ChatMessage[],
   onEvent: (event: ChatStreamEvent) => void,
   signal?: AbortSignal,
+  options?: { documentIds: string[]; webSearchEnabled: boolean },
 ) => Promise<void>

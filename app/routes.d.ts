@@ -9,6 +9,7 @@ declare module 'one' {
       StaticRoutes: 
         | `/`
         | `/_sitemap`
+        | `/admin`
         | `/auth`
         | `/auth/login`
         | `/auth/login/password`
